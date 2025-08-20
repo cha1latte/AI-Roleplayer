@@ -29,6 +29,11 @@ public class Main {
         if (connectionString == null) {
             connectionString = args.length > 1 ? args[1] : "mongodb://localhost:27017/roleplayer";
         }
+        
+        // Debug logging
+        System.out.println("Discord token is null: " + (discord_bot_token == null));
+        System.out.println("Discord token length: " + (discord_bot_token != null ? discord_bot_token.length() : 0));
+        System.out.println("Connection string: " + (connectionString != null ? connectionString.substring(0, Math.min(20, connectionString.length())) + "..." : "null"));
 
         ServerApi serverApi = ServerApi.builder()
                 .version(ServerApiVersion.V1)
