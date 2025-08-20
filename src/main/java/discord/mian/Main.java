@@ -20,10 +20,14 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        String discord_bot_token = args[0];
-        String connectionString = "mongodb://localhost:27017/roleplayer";
-        if (args.length > 1) {
-            connectionString = args[1];
+        String discord_bot_token = System.getenv("DISCORD_BOT_TOKEN");
+        if (discord_bot_token == null && args.length > 0) {
+            discord_bot_token = args[0];
+        }
+        
+        String connectionString = System.getenv("MONGODB_CONNECTION_STRING");
+        if (connectionString == null) {
+            connectionString = args.length > 1 ? args[1] : "mongodb://localhost:27017/roleplayer";
         }
 
         ServerApi serverApi = ServerApi.builder()
