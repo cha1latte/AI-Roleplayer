@@ -129,8 +129,13 @@ public class Util {
         // ensures there's a default folder
         File defaultFolder = new File("data/defaults");
         if (!new File("data/defaults").exists()) {
+            System.out.println("data/defaults does not exist, extracting from defaults.zip");
             try (InputStream in = Util.class.getClassLoader().getResourceAsStream("defaults.zip")) {
-                assert in != null;
+                if (in == null) {
+                    System.out.println("ERROR: defaults.zip not found in resources!");
+                    return;
+                }
+                System.out.println("Found defaults.zip, extracting...");
                 ZipInputStream zip = new ZipInputStream(in);
                 ZipEntry entry;
 
