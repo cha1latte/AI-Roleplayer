@@ -47,6 +47,10 @@ public class Main {
                 .applyConnectionString(new ConnectionString(connectionString))
                 .serverApi(serverApi)
                 .codecRegistry(codecRegistry)
+                .applyToSslSettings(builder -> {
+                    builder.enabled(true);
+                    builder.invalidHostNameAllowed(true);
+                })
                 .build();
         Util.DATABASE = MongoClients.create(settings).getDatabase("roleplayer");
 
