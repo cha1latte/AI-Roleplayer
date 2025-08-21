@@ -179,6 +179,11 @@ public class Interactions {
                             .build()
             ));
             components.add(ActionRow.of(
+                    TextInput.create("talkability", "Talkability: Put a decimal from 0.0 to 1.0", TextInputStyle.SHORT)
+                            .setPlaceholder("Likelihood of responding when mentioned in chat")
+                            .build()
+            ));
+            components.add(ActionRow.of(
                     TextInput.create("avatar", "Avatar", TextInputStyle.SHORT)
                             .setPlaceholder("Direct image address to set the character's avatar")
                             .setRequired(false)
@@ -215,6 +220,12 @@ public class Interactions {
                             .setPlaceholder("Optional: First message character sends when roleplay starts")
                             .setValue(character.getDocument().getStartingMessage() != null ? character.getDocument().getStartingMessage() : "")
                             .setRequired(false)
+                            .build()
+            ));
+            components.add(ActionRow.of(
+                    TextInput.create("talkability", "Talkability: Put a decimal from 0.0 to 1.0", TextInputStyle.SHORT)
+                            .setPlaceholder("Likelihood of responding when mentioned in chat")
+                            .setValue(String.valueOf(character.getDocument().getTalkability()))
                             .build()
             ));
             components.add(ActionRow.of(
