@@ -14,8 +14,12 @@ public class Character extends Data<CharacterDocument> implements Chattable {
     }
 
     public InputStream downloadAvatar() throws IOException {
-        URL url = new URL(getDocument().getAvatar());
-
+        String avatarUrl = getDocument().getAvatar();
+        if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
+            throw new IOException("Avatar URL is null or empty");
+        }
+        
+        URL url = new URL(avatarUrl.trim());
         return url.openStream();
     }
 

@@ -161,8 +161,8 @@ public class Interactions {
     public static void replyCreatingPrompt(GenericComponentInteractionCreateEvent event, PromptType promptType) {
         List<ModalTopLevelComponent> components = new ArrayList<>();
         components.add(ActionRow.of(
-                TextInput.create("name", "🔥 HELLO WORLD 🔥", TextInputStyle.SHORT)
-                        .setPlaceholder("🚨 THIS IS A TEST 🚨")
+                TextInput.create("name", "Name", TextInputStyle.SHORT)
+                        .setPlaceholder("Enter a name for the new prompt!")
                         .build()
         ));
         components.add(ActionRow.of(
@@ -209,13 +209,15 @@ public class Interactions {
         components.add(ActionRow.of(promptInput.build()));
         if (promptType == PromptType.CHARACTER) {
             Character character = (Character) data;
-            components.add(ActionRow.of(
-                    TextInput.create("startingMessage", "Starting Message", TextInputStyle.PARAGRAPH)
-                            .setPlaceholder("Optional: First message character sends when roleplay starts")
-                            .setValue(character.getDocument().getStartingMessage() != null ? character.getDocument().getStartingMessage() : "")
-                            .setRequired(false)
-                            .build()
-            ));
+            TextInput.Builder startingMessageInput = TextInput.create("startingMessage", "Starting Message", TextInputStyle.PARAGRAPH)
+                    .setPlaceholder("Optional: First message character sends when roleplay starts")
+                    .setRequired(false);
+            
+            if (character.getDocument().getStartingMessage() != null && !character.getDocument().getStartingMessage().trim().isEmpty()) {
+                startingMessageInput.setValue(character.getDocument().getStartingMessage());
+            }
+            
+            components.add(ActionRow.of(startingMessageInput.build()));
             components.add(ActionRow.of(
                     TextInput.create("talkability", "Talkability: Put a decimal from 0.0 to 1.0", TextInputStyle.SHORT)
                             .setPlaceholder("Likelihood of responding when mentioned in chat")
