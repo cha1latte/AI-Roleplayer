@@ -161,8 +161,8 @@ public class Interactions {
     public static void replyCreatingPrompt(GenericComponentInteractionCreateEvent event, PromptType promptType) {
         List<ModalTopLevelComponent> components = new ArrayList<>();
         components.add(ActionRow.of(
-                TextInput.create("name", "TESTING - Name Field", TextInputStyle.SHORT)
-                        .setPlaceholder("THIS IS A TEST - Enter a name for the new prompt!")
+                TextInput.create("name", "Name", TextInputStyle.SHORT)
+                        .setPlaceholder("Enter a name for the new prompt!")
                         .build()
         ));
         components.add(ActionRow.of(
@@ -170,12 +170,17 @@ public class Interactions {
                         .setPlaceholder("Edit the prompt. {{char}} represents the character")
                         .build()
         ));
-        
+
         if (promptType == PromptType.CHARACTER) {
             components.add(ActionRow.of(
-                    TextInput.create("startingMessage", "Starting Message (TEST)", TextInputStyle.PARAGRAPH)
-                            .setPlaceholder("First message the character will send when roleplay starts")
+                    TextInput.create("startingMessage", "Starting Message", TextInputStyle.PARAGRAPH)
+                            .setPlaceholder("Optional: First message character sends when roleplay starts")
                             .setRequired(false)
+                            .build()
+            ));
+            components.add(ActionRow.of(
+                    TextInput.create("talkability", "Talkability: Put a decimal from 0.0 to 1.0", TextInputStyle.SHORT)
+                            .setPlaceholder("Likelihood of responding when mentioned in chat")
                             .build()
             ));
         }
@@ -189,8 +194,8 @@ public class Interactions {
     }
 
     public static void replyEditingPrompt(GenericComponentInteractionCreateEvent event, PromptType promptType, String promptName) throws IOException {
-        TextInput.Builder promptInput = TextInput.create("prompt", "TESTING - Prompt Field", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("THIS IS A TEST - Edit the prompt. {{char}} represents the character");
+        TextInput.Builder promptInput = TextInput.create("prompt", "Prompt: {{char}} represents the character", TextInputStyle.PARAGRAPH)
+                .setPlaceholder("Edit the prompt. {{char}} represents the character");
 
         Server server = AIBot.bot.getServerData(event.getGuild());
         Data<?> data = server.getDatas(promptType).get(promptName);
@@ -205,10 +210,16 @@ public class Interactions {
         if (promptType == PromptType.CHARACTER) {
             Character character = (Character) data;
             components.add(ActionRow.of(
-                    TextInput.create("startingMessage", "Starting Message (TEST)", TextInputStyle.PARAGRAPH)
-                            .setPlaceholder("First message the character will send when roleplay starts")
+                    TextInput.create("startingMessage", "Starting Message", TextInputStyle.PARAGRAPH)
+                            .setPlaceholder("Optional: First message character sends when roleplay starts")
                             .setValue(character.getDocument().getStartingMessage() != null ? character.getDocument().getStartingMessage() : "")
                             .setRequired(false)
+                            .build()
+            ));
+            components.add(ActionRow.of(
+                    TextInput.create("talkability", "Talkability: Put a decimal from 0.0 to 1.0", TextInputStyle.SHORT)
+                            .setPlaceholder("Likelihood of responding when mentioned in chat")
+                            .setValue(String.valueOf(character.getDocument().getTalkability()))
                             .build()
             ));
         }
@@ -237,7 +248,6 @@ public class Interactions {
             double talkability = Math.min(1, Math.max(0, event.getValue("talkability") != null ?
                     tryParse.apply(event.getValue("talkability").getAsString()) : 0.5));
             String avatar = event.getValue("avatar") != null ? event.getValue("avatar").getAsString() : null;
-            String startingMessage = event.getValue("startingMessage") != null ? event.getValue("startingMessage").getAsString() : null;
             Server server = AIBot.bot.getServerData(event.getGuild());
 
             Data<?> data = server.getDatas(promptType).get(promptName);
@@ -249,14 +259,12 @@ public class Interactions {
                             chr.setTalkability(talkability);
                             if (avatar != null)
                                 chr.setAvatar(avatar);
-                            if (startingMessage != null && !startingMessage.trim().isEmpty())
-                                chr.setStartingMessage(startingMessage.trim());
                         }
                         doc.setPrompt(prompt);
                     });
                 } else {
                     switch (promptType) {
-                        case CHARACTER -> server.createCharacter(name, prompt, talkability, startingMessage);
+                        case CHARACTER -> server.createCharacter(name, prompt, talkability);
                         case WORLD -> server.createWorld(name, prompt);
                         case INSTRUCTION -> server.createInstruction(name, prompt);
                     }
