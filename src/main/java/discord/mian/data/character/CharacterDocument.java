@@ -9,6 +9,7 @@ public class CharacterDocument extends AIDocument {
     private String avatar;
     private double talkability;
     private String prompt;
+    private String startingMessage;
 
     public CharacterDocument() {
         setType(PromptType.CHARACTER.displayName.toLowerCase());
@@ -42,5 +43,13 @@ public class CharacterDocument extends AIDocument {
 
     public void setTalkability(double talkability) {
         this.talkability = talkability;
+    }
+
+    public String getStartingMessage() {
+        return startingMessage;
+    }
+
+    public void setStartingMessage(String startingMessage) {
+        this.startingMessage = startingMessage;
     }
 }
