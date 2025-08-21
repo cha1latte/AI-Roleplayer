@@ -990,7 +990,9 @@ public class Interactions {
 
                 byte[] data = null;
                 try (InputStream stream = chat.getCurrentCharacter().downloadAvatar()) {
-                    data = stream.readAllBytes();
+                    if (stream != null) {
+                        data = stream.readAllBytes();
+                    }
                 } catch (Exception e) {
                     Constants.LOGGER.error("Failed to get avatar, using backup", e);
                 }
