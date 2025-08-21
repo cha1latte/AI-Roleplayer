@@ -161,8 +161,8 @@ public class Interactions {
     public static void replyCreatingPrompt(GenericComponentInteractionCreateEvent event, PromptType promptType) {
         List<ModalTopLevelComponent> components = new ArrayList<>();
         components.add(ActionRow.of(
-                TextInput.create("name", "Name", TextInputStyle.SHORT)
-                        .setPlaceholder("Enter a name for the new prompt!")
+                TextInput.create("name", "TESTING - Name Field", TextInputStyle.SHORT)
+                        .setPlaceholder("THIS IS A TEST - Enter a name for the new prompt!")
                         .build()
         ));
         components.add(ActionRow.of(
@@ -189,8 +189,8 @@ public class Interactions {
     }
 
     public static void replyEditingPrompt(GenericComponentInteractionCreateEvent event, PromptType promptType, String promptName) throws IOException {
-        TextInput.Builder promptInput = TextInput.create("prompt", "Prompt: {{char}} represents the character", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Edit the prompt. {{char}} represents the character");
+        TextInput.Builder promptInput = TextInput.create("prompt", "TESTING - Prompt Field", TextInputStyle.PARAGRAPH)
+                .setPlaceholder("THIS IS A TEST - Edit the prompt. {{char}} represents the character");
 
         Server server = AIBot.bot.getServerData(event.getGuild());
         Data<?> data = server.getDatas(promptType).get(promptName);
