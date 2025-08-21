@@ -54,17 +54,20 @@ public class Server {
             configuration = cursor.next();
         else {
             configuration = new ServerConfig(guild.getIdLong(), new HashMap<>());
+        }
 
-            // can be assumed that the server is new
-            for (PromptType promptType : PromptType.values()) {
-                File defaults = Util.getDefaultsFor(promptType);
+        // Always reload defaults on startup
+        for (PromptType promptType : PromptType.values()) {
+            File defaults = Util.getDefaultsFor(promptType);
 
+            if (defaults.exists()) {
                 Arrays.stream(Objects.requireNonNull(defaults.listFiles())).forEach(file -> {
                     try {
                         if (promptType == PromptType.CHARACTER) {
                             ObjectMapper mapper = new ObjectMapper();
 
                             JsonNode characterNode = mapper.readTree(file);
+                            System.out.println("Loading character: " + characterNode.get("name").asText());
                             createCharacter(
                                     characterNode.get("name").asText(),
                                     characterNode.get("prompt").asText(),
@@ -78,10 +81,13 @@ public class Server {
                             String name = file.getName();
                             name = name.substring(0, name.lastIndexOf("."));
 
-                            if (promptType == PromptType.INSTRUCTION)
+                            if (promptType == PromptType.INSTRUCTION) {
+                                System.out.println("Loading instruction: " + name);
                                 createInstruction(name, prompt);
-                            else
+                            } else {
+                                System.out.println("Loading world: " + name);
                                 createWorld(name, prompt);
+                            }
                         }
                     } catch (IOException e) {
                         throw new RuntimeException(e);
