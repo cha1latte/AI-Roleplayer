@@ -133,7 +133,7 @@ public class Util {
             try (InputStream in = Util.class.getClassLoader().getResourceAsStream("defaults.zip")) {
                 if (in == null) {
                     System.out.println("ERROR: defaults.zip not found in resources!");
-                    return;
+                    return data;
                 }
                 System.out.println("Found defaults.zip, extracting...");
                 ZipInputStream zip = new ZipInputStream(in);
