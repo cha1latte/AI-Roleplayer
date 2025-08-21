@@ -218,10 +218,20 @@ public class Server {
     }
 
     public void createCharacter(String name, String definition, double talkability) throws MongoException {
+        createCharacter(name, definition, talkability, null, null);
+    }
+
+    public void createCharacter(String name, String definition, double talkability, String avatar, String startingMessage) throws MongoException {
         Character data = new Character(new CharacterDocument(name, guild.getIdLong()));
         data.updateDocument(document -> {
             document.setPrompt(definition);
             document.setTalkability(talkability);
+            if (avatar != null && !avatar.trim().isEmpty()) {
+                document.setAvatar(avatar.trim());
+            }
+            if (startingMessage != null && !startingMessage.trim().isEmpty()) {
+                document.setStartingMessage(startingMessage.trim());
+            }
         });
 
         characterDatas.putIfAbsent(name, data);
