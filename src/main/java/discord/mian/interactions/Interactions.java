@@ -215,13 +215,15 @@ public class Interactions {
         components.add(ActionRow.of(promptInput.build()));
         if (promptType == PromptType.CHARACTER) {
             Character character = (Character) data;
-            components.add(ActionRow.of(
-                    TextInput.create("startingMessage", "Starting Message", TextInputStyle.PARAGRAPH)
-                            .setPlaceholder("Optional: First message character sends when roleplay starts")
-                            .setValue(character.getDocument().getStartingMessage() != null ? character.getDocument().getStartingMessage() : "")
-                            .setRequired(false)
-                            .build()
-            ));
+            TextInput.Builder startingMessageInput = TextInput.create("startingMessage", "Starting Message", TextInputStyle.PARAGRAPH)
+                    .setPlaceholder("Optional: First message character sends when roleplay starts")
+                    .setRequired(false);
+            
+            if (character.getDocument().getStartingMessage() != null && !character.getDocument().getStartingMessage().trim().isEmpty()) {
+                startingMessageInput.setValue(character.getDocument().getStartingMessage());
+            }
+            
+            components.add(ActionRow.of(startingMessageInput.build()));
             components.add(ActionRow.of(
                     TextInput.create("talkability", "Talkability: Put a decimal from 0.0 to 1.0", TextInputStyle.SHORT)
                             .setPlaceholder("Likelihood of responding when mentioned in chat")
@@ -1071,7 +1073,4 @@ public class Interactions {
         componentList.add(TextDisplay.of("Yep! This is the whole reason why the bot creates your roleplays in threads. You can press \"Continue\" at any time to continue from a specific roleplay."));
         componentList.add(Separator.createDivider(Separator.Spacing.SMALL));
         componentList.add(TextDisplay.of("## How can I set permissions for what someone can do? 🛑"));
-        componentList.add(TextDisplay.of("At the moment everyone can roleplay with the bot. The only few things people can't do is create and delete prompts or edit the server configuration.\n\nFor that, you must use /set_bot_role to assign a role that bypasses these restrictions."));
-        return Util.createBotContainer(componentList);
-    }
-}
+        componentList.add(TextDisplay.of("At the moment everyone can roleplay with the bot. The only few things people can't do is create and delete prompts or edit the server configuration.\n\nFor that, you must use /set_bot_
