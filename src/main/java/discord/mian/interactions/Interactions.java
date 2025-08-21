@@ -161,8 +161,8 @@ public class Interactions {
     public static void replyCreatingPrompt(GenericComponentInteractionCreateEvent event, PromptType promptType) {
         List<ModalTopLevelComponent> components = new ArrayList<>();
         components.add(ActionRow.of(
-                TextInput.create("name", "Name", TextInputStyle.SHORT)
-                        .setPlaceholder("Enter a name for the new prompt!")
+                TextInput.create("name", "🔥 HELLO WORLD 🔥", TextInputStyle.SHORT)
+                        .setPlaceholder("🚨 THIS IS A TEST 🚨")
                         .build()
         ));
         components.add(ActionRow.of(
