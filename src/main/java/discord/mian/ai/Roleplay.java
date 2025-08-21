@@ -391,9 +391,9 @@ public class Roleplay {
         String botUser = character.getName() + ":";
         Function<String, String> reformat = (string) ->
                 string.replace(botUser, "")
-                        .replace("\\n", "\n")
-                        .replace("\\r", "\r")
-                        .replace("\\\\", "\\");
+                        .replace("\\n", "")
+                        .replace("\\r", "")
+                        .replace("\\", "");
 
         RestAction<ResponseInfo> responseInfo = generateResponse(character, response -> {
             if (!queued.get() && System.currentTimeMillis() - timeResponseMade.get() >= timeBetween && !response.isBlank()) {
