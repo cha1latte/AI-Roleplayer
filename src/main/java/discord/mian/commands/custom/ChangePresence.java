@@ -24,7 +24,7 @@ public class ChangePresence extends SlashCommand {
                 new OptionData(OptionType.STRING, "state", "State of activity (Ignore this if custom status)"),
                 new OptionData(OptionType.STRING, "url", "Required if streaming!")
         );
-        this.permissionHandler.addUsers(Constants.ALLOWED_USER_IDS);
+        // Remove hardcoded user restriction - now uses bot master role instead
     }
 
     @Override
@@ -42,17 +42,17 @@ public class ChangePresence extends SlashCommand {
             OnlineStatus onlineStatus = OnlineStatus.fromKey(onlineStatusKey);
 
             if (activityTypeKey == null) {
-                if (currentBotActivity.getType() != null) {
-                    activityTypeKey = event.getJDA().getPresence().getActivity().getType().getKey();
+                if (currentBotActivity != null && currentBotActivity.getType() != null) {
+                    activityTypeKey = currentBotActivity.getType().getKey();
                 } else {
-                    activityTypeKey = 4;
+                    activityTypeKey = 4; // Default to CUSTOM status
                 }
             }
 
             Activity.ActivityType activityType = Activity.ActivityType.fromKey(activityTypeKey);
 
-            if (name == null) name = currentBotActivity.getName();
-            if (state == null) state = currentBotActivity.getState();
+            if (name == null) name = currentBotActivity != null ? currentBotActivity.getName() : "AI Roleplayer";
+            if (state == null) state = currentBotActivity != null ? currentBotActivity.getState() : "";
             Activity activity = Activity.of(activityType, name, url).withState(state);
 
             event.getJDA().getPresence().setPresence(onlineStatus, activity);

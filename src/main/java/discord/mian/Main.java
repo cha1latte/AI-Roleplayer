@@ -20,11 +20,20 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        String discord_bot_token = args[0];
-        String connectionString = "mongodb://localhost:27017/roleplayer";
-        if (args.length > 1) {
-            connectionString = args[1];
+        String discord_bot_token = System.getenv("DISCORD_BOT_TOKEN");
+        if (discord_bot_token == null && args.length > 0) {
+            discord_bot_token = args[0];
         }
+        
+        String connectionString = System.getenv("MONGODB_CONNECTION_STRING");
+        if (connectionString == null) {
+            connectionString = args.length > 1 ? args[1] : "mongodb://localhost:27017/roleplayer";
+        }
+        
+        // Debug logging
+        System.out.println("Discord token is null: " + (discord_bot_token == null));
+        System.out.println("Discord token length: " + (discord_bot_token != null ? discord_bot_token.length() : 0));
+        System.out.println("Connection string: " + (connectionString != null ? connectionString.substring(0, Math.min(20, connectionString.length())) + "..." : "null"));
 
         ServerApi serverApi = ServerApi.builder()
                 .version(ServerApiVersion.V1)
@@ -38,6 +47,10 @@ public class Main {
                 .applyConnectionString(new ConnectionString(connectionString))
                 .serverApi(serverApi)
                 .codecRegistry(codecRegistry)
+                .applyToSslSettings(builder -> {
+                    builder.enabled(true);
+                    builder.invalidHostNameAllowed(true);
+                })
                 .build();
         Util.DATABASE = MongoClients.create(settings).getDatabase("roleplayer");
 

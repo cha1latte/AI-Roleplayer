@@ -161,8 +161,8 @@ public class Interactions {
     public static void replyCreatingPrompt(GenericComponentInteractionCreateEvent event, PromptType promptType) {
         List<ModalTopLevelComponent> components = new ArrayList<>();
         components.add(ActionRow.of(
-                TextInput.create("name", "Name", TextInputStyle.SHORT)
-                        .setPlaceholder("Enter a name for the new prompt!")
+                TextInput.create("name", "🔥 HELLO WORLD 🔥", TextInputStyle.SHORT)
+                        .setPlaceholder("🚨 THIS IS A TEST 🚨")
                         .build()
         ));
         components.add(ActionRow.of(
@@ -173,14 +173,14 @@ public class Interactions {
 
         if (promptType == PromptType.CHARACTER) {
             components.add(ActionRow.of(
-                    TextInput.create("talkability", "Talkability: Put a decimal from 0.0 to 1.0", TextInputStyle.SHORT)
-                            .setPlaceholder("Likelihood of responding when mentioned in chat")
+                    TextInput.create("startingMessage", "Starting Message", TextInputStyle.PARAGRAPH)
+                            .setPlaceholder("Optional: First message character sends when roleplay starts")
+                            .setRequired(false)
                             .build()
             ));
             components.add(ActionRow.of(
-                    TextInput.create("avatar", "Avatar", TextInputStyle.SHORT)
-                            .setPlaceholder("Direct image address to set the character's avatar")
-                            .setRequired(false)
+                    TextInput.create("talkability", "Talkability: Put a decimal from 0.0 to 1.0", TextInputStyle.SHORT)
+                            .setPlaceholder("Likelihood of responding when mentioned in chat")
                             .build()
             ));
         }
@@ -208,16 +208,18 @@ public class Interactions {
         List<ModalTopLevelComponent> components = new ArrayList<>();
         components.add(ActionRow.of(promptInput.build()));
         if (promptType == PromptType.CHARACTER) {
+            Character character = (Character) data;
             components.add(ActionRow.of(
-                    TextInput.create("talkability", "Talkability: Put a decimal from 0.0 to 1.0", TextInputStyle.SHORT)
-                            .setPlaceholder("Likelihood of responding when mentioned in chat")
-                            .setValue(String.valueOf(((Character) data).getDocument().getTalkability()))
+                    TextInput.create("startingMessage", "Starting Message", TextInputStyle.PARAGRAPH)
+                            .setPlaceholder("Optional: First message character sends when roleplay starts")
+                            .setValue(character.getDocument().getStartingMessage() != null ? character.getDocument().getStartingMessage() : "")
+                            .setRequired(false)
                             .build()
             ));
             components.add(ActionRow.of(
-                    TextInput.create("avatar", "Avatar", TextInputStyle.SHORT)
-                            .setPlaceholder("Direct image address to set the character's avatar")
-                            .setRequired(false)
+                    TextInput.create("talkability", "Talkability: Put a decimal from 0.0 to 1.0", TextInputStyle.SHORT)
+                            .setPlaceholder("Likelihood of responding when mentioned in chat")
+                            .setValue(String.valueOf(character.getDocument().getTalkability()))
                             .build()
             ));
         }

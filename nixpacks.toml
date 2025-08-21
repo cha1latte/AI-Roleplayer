@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ['openjdk21']
+
+[phases.build]
+cmds = ['chmod +x gradlew', './gradlew clean build -x check -x test']
+
+[phases.start]
+cmd = 'java -jar build/libs/AI-Roleplayer-1.7.2-all.jar'
