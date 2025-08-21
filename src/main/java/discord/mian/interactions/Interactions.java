@@ -161,8 +161,8 @@ public class Interactions {
     public static void replyCreatingPrompt(GenericComponentInteractionCreateEvent event, PromptType promptType) {
         List<ModalTopLevelComponent> components = new ArrayList<>();
         components.add(ActionRow.of(
-                TextInput.create("name", "Name", TextInputStyle.SHORT)
-                        .setPlaceholder("Enter a name for the new prompt!")
+                TextInput.create("name", "🔥 HELLO WORLD 🔥", TextInputStyle.SHORT)
+                        .setPlaceholder("🚨 THIS IS A TEST 🚨")
                         .build()
         ));
         components.add(ActionRow.of(
@@ -181,12 +181,6 @@ public class Interactions {
             components.add(ActionRow.of(
                     TextInput.create("talkability", "Talkability: Put a decimal from 0.0 to 1.0", TextInputStyle.SHORT)
                             .setPlaceholder("Likelihood of responding when mentioned in chat")
-                            .build()
-            ));
-            components.add(ActionRow.of(
-                    TextInput.create("avatar", "Avatar", TextInputStyle.SHORT)
-                            .setPlaceholder("Direct image address to set the character's avatar")
-                            .setRequired(false)
                             .build()
             ));
         }
@@ -228,12 +222,6 @@ public class Interactions {
                             .setValue(String.valueOf(character.getDocument().getTalkability()))
                             .build()
             ));
-            components.add(ActionRow.of(
-                    TextInput.create("avatar", "Avatar", TextInputStyle.SHORT)
-                            .setPlaceholder("Direct image address to set the character's avatar")
-                            .setRequired(false)
-                            .build()
-            ));
         }
 
         event.replyModal(
@@ -260,7 +248,6 @@ public class Interactions {
             double talkability = Math.min(1, Math.max(0, event.getValue("talkability") != null ?
                     tryParse.apply(event.getValue("talkability").getAsString()) : 0.5));
             String avatar = event.getValue("avatar") != null ? event.getValue("avatar").getAsString() : null;
-            String startingMessage = event.getValue("startingMessage") != null ? event.getValue("startingMessage").getAsString() : null;
             Server server = AIBot.bot.getServerData(event.getGuild());
 
             Data<?> data = server.getDatas(promptType).get(promptName);
@@ -272,14 +259,12 @@ public class Interactions {
                             chr.setTalkability(talkability);
                             if (avatar != null)
                                 chr.setAvatar(avatar);
-                            if (startingMessage != null && !startingMessage.trim().isEmpty())
-                                chr.setStartingMessage(startingMessage.trim());
                         }
                         doc.setPrompt(prompt);
                     });
                 } else {
                     switch (promptType) {
-                        case CHARACTER -> server.createCharacter(name, prompt, talkability, avatar, startingMessage);
+                        case CHARACTER -> server.createCharacter(name, prompt, talkability);
                         case WORLD -> server.createWorld(name, prompt);
                         case INSTRUCTION -> server.createInstruction(name, prompt);
                     }
