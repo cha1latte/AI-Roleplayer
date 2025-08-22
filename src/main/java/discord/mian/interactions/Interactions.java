@@ -1034,7 +1034,7 @@ public class Interactions {
                         .useComponentsV2()
                         .queue();
             } catch (Exception e) {
-                event.getHook().editOriginal("Failed to retrieve response information!").queue();
+                event.reply("Failed to retrieve response information!").setEphemeral(true).queue();
                 Constants.LOGGER.info(e.toString());
             }
         };
