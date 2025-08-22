@@ -113,31 +113,31 @@ public class ChangeModel extends SlashCommand {
             Roleplay roleplay = AIBot.bot.getChat(event.getGuild());
             AIProvider currentProvider = roleplay.getAIProvider();
             
-            Map<String, String> models;
+            Map<String, String> finalModels;
             
             if (currentProvider == AIProvider.GOOGLE_AI) {
-                models = getGoogleAIModels();
+                Map<String, String> rawModels = getGoogleAIModels();
                 // For Google AI, we invert the map to show display names first
                 Map<String, String> displayModels = new HashMap<>();
-                models.forEach((id, name) -> displayModels.put(name, id));
-                models = displayModels;
+                rawModels.forEach((id, name) -> displayModels.put(name, id));
+                finalModels = displayModels;
             } else {
                 // OpenRouter
-                models = getOpenRouterModels();
+                Map<String, String> rawModels = getOpenRouterModels();
                 // Invert the map to show display names first for consistency
                 Map<String, String> displayModels = new HashMap<>();
-                models.forEach((id, name) -> displayModels.put(name, id));
-                models = displayModels;
+                rawModels.forEach((id, name) -> displayModels.put(name, id));
+                finalModels = displayModels;
             }
 
             String selectedModel = event.getFocusedOption().getValue().toLowerCase();
             AtomicInteger count = new AtomicInteger();
 
-            event.replyChoices(models.keySet()
+            event.replyChoices(finalModels.keySet()
                     .stream()
                     .filter(modelName -> modelName.toLowerCase().contains(selectedModel)
                             && count.getAndIncrement() < 25)
-                    .map(modelName -> new Command.Choice(modelName, models.get(modelName))).toList()).queue();
+                    .map(modelName -> new Command.Choice(modelName, finalModels.get(modelName))).toList()).queue();
         } catch (Exception e) {
             // Fallback to empty list if there's an error
             event.replyChoices(java.util.List.of()).queue();
