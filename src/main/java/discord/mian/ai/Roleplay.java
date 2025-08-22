@@ -464,6 +464,38 @@ public class Roleplay {
             )).queue();
             return;
         }
+
+        // Check if this is the first message and character has a starting message
+        String startingMessage = currentCharacter.getDocument().getStartingMessage();
+        if (latestAssistantMessage == null && startingMessage != null && !startingMessage.trim().isEmpty()) {
+            // Send the predefined starting message instead of generating
+            String avatarLink = currentCharacter.getDocument().getAvatar();
+            
+            WebhookMessageCreateAction<Message> messageCreateData = webhook.sendMessage(startingMessage.trim())
+                    .setThread(historyMarker)
+                    .setUsername(currentCharacter.getName());
+
+            if (avatarLink != null && !avatarLink.isBlank() &&
+                    (avatarLink.startsWith("https://") || avatarLink.startsWith("http://"))) {
+                messageCreateData = messageCreateData.setAvatarUrl(avatarLink);
+            }
+
+            messageCreateData.queue(message -> {
+                latestAssistantMessage = message;
+                swipes = new ArrayList<>();
+                swipes.add(new ResponseInfo("Starting Message", "Manual", startingMessage.trim(), 0, 0, "Starting message"));
+                currentSwipe = 0;
+                
+                // Continue with queued responses if any, but don't exit completely
+                if (!queuedResponses.isEmpty()) {
+                    Map.Entry<Character, Boolean> next = queuedResponses.getFirst();
+                    queuedResponses.removeFirst();
+                    promptCharacterToRoleplay(next.getKey(), null, next.getValue());
+                }
+            });
+            return; // Only return here for starting messages
+        }
+        
         if (this.errorMsgCleanup != null) {
             this.errorMsgCleanup.delete().queue(RestAction.getDefaultSuccess(), toThrow -> {
             });
