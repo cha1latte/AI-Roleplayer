@@ -38,6 +38,7 @@ public class ChangeModel extends SlashCommand {
         // Available Google AI models
         return Map.of(
             "gemini-2.5-flash", "Gemini 2.5 Flash",
+            "gemini-2.5-pro", "Gemini 2.5 Pro",
             "gemini-1.5-flash", "Gemini 1.5 Flash", 
             "gemini-1.5-pro", "Gemini 1.5 Pro",
             "gemini-1.0-pro", "Gemini 1.0 Pro"
