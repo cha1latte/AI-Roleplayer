@@ -1000,16 +1000,38 @@ public class Interactions {
                 } catch (Exception e) {
                     Constants.LOGGER.error("Failed to get avatar, using backup", e);
                 }
-                data = data != null ? data : Objects.requireNonNull(Util.getRandomImage());
-                Tika tika = new Tika();
-                String type = tika.detect(data);
-                type = type.substring(type.indexOf("/") + 1);
+                if (data == null) {
+                    byte[] fallbackImage = Util.getRandomImage();
+                    if (fallbackImage != null) {
+                        data = fallbackImage;
+                    }
+                }
+                
+                // Add response information section with or without thumbnail
+                if (data != null) {
+                    String type = "png"; // default
+                    try {
+                        Tika tika = new Tika();
+                        String detectedType = tika.detect(data);
+                        if (detectedType != null && detectedType.contains("/")) {
+                            type = detectedType.substring(detectedType.indexOf("/") + 1);
+                        }
+                    } catch (Exception e) {
+                        Constants.LOGGER.warn("Failed to detect file type, using default", e);
+                    }
 
-                containerComponents.add(Section.of(
-                        Thumbnail.fromFile(FileUpload.fromData(data, "avatar." + type)),
-                        TextDisplay.of("# Response Information"),
-                        TextDisplay.of("Metadata about the generated response")
-                ));
+                    containerComponents.add(Section.of(
+                            Thumbnail.fromFile(FileUpload.fromData(data, "avatar." + type)),
+                            TextDisplay.of("# Response Information"),
+                            TextDisplay.of("Metadata about the generated response")
+                    ));
+                } else {
+                    // No image available, just add text
+                    containerComponents.add(Section.of(
+                            TextDisplay.of("# Response Information"),
+                            TextDisplay.of("Metadata about the generated response")
+                    ));
+                }
                 containerComponents.add(Separator.createDivider(Separator.Spacing.SMALL));
                 containerComponents.add(TextDisplay.of("-# The json file sent to the LLM for a response"));
                 containerComponents.add(FileDisplay.fromFile(FileUpload.fromData(responseInfo.getPrompt().getBytes(), "prompt.json")));
