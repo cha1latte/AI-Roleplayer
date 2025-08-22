@@ -14,9 +14,15 @@ public class GoogleAIRequest {
     private final int maxTokens;
 
     public GoogleAIRequest(String apiKey, String model, List<ChatMessage> messages, double temperature, int maxTokens) {
-        // Set API key as environment variable for the client
-        System.setProperty("GOOGLE_API_KEY", apiKey);
-        this.client = new Client();
+        // Debug logging
+        discord.mian.Constants.LOGGER.info("GoogleAIRequest constructor called with apiKey: " + (apiKey != null ? "***SET***" : "NULL"));
+        
+        if (apiKey == null || apiKey.isEmpty()) {
+            throw new IllegalArgumentException("Google AI API key is null or empty");
+        }
+        
+        // Create client with API key directly
+        this.client = new Client(apiKey);
         this.model = model;
         this.messages = messages;
         this.temperature = temperature;
