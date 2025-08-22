@@ -6,6 +6,8 @@ import io.github.sashirestela.openai.domain.chat.ChatMessage;
 
 import java.util.List;
 import java.util.Optional;
+import java.lang.reflect.Field;
+import java.util.Map;
 
 public class GoogleAIRequest {
     private final Client client;
@@ -22,21 +24,32 @@ public class GoogleAIRequest {
             throw new IllegalArgumentException("Google AI API key is null or empty");
         }
         
-        // Create client with API key using the complex constructor
-        this.client = new Client(
-            Optional.of(apiKey),           // API key
-            Optional.empty(),              // Base URL (use default)
-            Optional.empty(),              // Model (use default)
-            Optional.empty(),              // Google credentials (not needed with API key)
-            Optional.empty(),              // HTTP options (use default)
-            Optional.empty(),              // Debug (use default)
-            Optional.empty(),              // Debug config (use default)
-            Optional.empty()               // Headers (use default)
-        );
+        // Try to set the API key in the environment through reflection
+        try {
+            setEnvironmentVariable("GOOGLE_API_KEY", apiKey);
+        } catch (Exception e) {
+            // Fallback to system property
+            System.setProperty("GOOGLE_API_KEY", apiKey);
+        }
+        this.client = new Client();
         this.model = model;
         this.messages = messages;
         this.temperature = temperature;
         this.maxTokens = maxTokens;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void setEnvironmentVariable(String key, String value) throws Exception {
+        Class<?> processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
+        Field theEnvironmentField = processEnvironmentClass.getDeclaredField("theEnvironment");
+        theEnvironmentField.setAccessible(true);
+        Map<String, String> env = (Map<String, String>) theEnvironmentField.get(null);
+        env.put(key, value);
+        
+        Field theCaseInsensitiveEnvironmentField = processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment");
+        theCaseInsensitiveEnvironmentField.setAccessible(true);
+        Map<String, String> cienv = (Map<String, String>) theCaseInsensitiveEnvironmentField.get(null);
+        cienv.put(key, value);
     }
 
     public String convertMessagesToPrompt() {
