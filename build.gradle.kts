@@ -10,6 +10,7 @@ val tika_version: String by properties
 val jackson_version: String by properties
 val jtokkit_version: String by properties
 val openai_version: String by properties
+val googleai_version: String by properties
 val logback_version: String by properties
 val okhttp_version: String by properties
 
@@ -32,6 +33,7 @@ dependencies{
     implementation("com.fasterxml.jackson.core:jackson-core:$jackson_version");
     implementation("com.knuddels:jtokkit:$jtokkit_version")
     implementation("io.github.sashirestela:simple-openai:$openai_version")
+    implementation("com.google.genai:google-genai:$googleai_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
 }
 

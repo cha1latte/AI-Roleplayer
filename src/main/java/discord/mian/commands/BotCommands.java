@@ -21,6 +21,7 @@ public class BotCommands {
             new Talk(),
             new ChangeAvatar(),
             new EditModelProperties(),
+            new ChangeAIProvider(),
             new Help()
     );
 

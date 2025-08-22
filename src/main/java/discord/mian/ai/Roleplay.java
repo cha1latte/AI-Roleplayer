@@ -3,6 +3,7 @@ package discord.mian.ai;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.genai.types.GenerateContentResponse;
 import com.knuddels.jtokkit.Encodings;
 import com.knuddels.jtokkit.api.Encoding;
 import com.knuddels.jtokkit.api.EncodingRegistry;
@@ -66,6 +67,7 @@ public class Roleplay {
     private double temperature;
     private Model model;
     private String provider;
+    private AIProvider aiProvider;
     private final Guild guild;
     private final Server server;
 
@@ -109,6 +111,7 @@ public class Roleplay {
 
         this.setModel(new Model(id, display));
         this.setProvider(configuration.get("provider", String.class).getValue());
+        this.setAIProvider(AIProvider.valueOf(configuration.get("ai_provider", String.class).getValue()));
         this.registry = Encodings.newDefaultEncodingRegistry();
         this.guild = guild;
 
@@ -275,7 +278,26 @@ public class Roleplay {
                         .messages(history)));
     }
 
+    public RestAction<GoogleAIRequest> createGoogleAIRequest(Character character) {
+        return getHistory(character).map(history ->
+                new GoogleAIRequest(
+                        server.getGoogleAIKey(),
+                        model.id,
+                        history,
+                        temperature,
+                        maxTokens
+                ));
+    }
+
     private RestAction<ResponseInfo> generateResponse(Character character, Consumer<String> consumer) {
+        if (aiProvider == AIProvider.GOOGLE_AI) {
+            return generateGoogleAIResponse(character, consumer);
+        } else {
+            return generateOpenRouterResponse(character, consumer);
+        }
+    }
+
+    private RestAction<ResponseInfo> generateOpenRouterResponse(Character character, Consumer<String> consumer) {
         RestAction<ExtrasChatRequest> chatRequestAction = createChatRequest(character);
 
         return chatRequestAction.map(chatRequest -> {
@@ -379,6 +401,56 @@ public class Roleplay {
                 if (e instanceof FailedResponseInfo info)
                     throw (info);
                 throw (new RuntimeException(e));
+            }
+        });
+    }
+
+    private RestAction<ResponseInfo> generateGoogleAIResponse(Character character, Consumer<String> consumer) {
+        RestAction<GoogleAIRequest> googleAIRequestAction = createGoogleAIRequest(character);
+
+        return googleAIRequestAction.map(googleAIRequest -> {
+            String fullPrompt = googleAIRequest.convertMessagesToPrompt();
+            String failedResult = "";
+            
+            try {
+                GenerateContentResponse response = googleAIRequest.generate();
+                
+                if (response == null || response.text() == null) {
+                    throw new RuntimeException("Google AI returned no content");
+                }
+                
+                String fullResponse = response.text().trim();
+                
+                // For Google AI, we don't have streaming, so we call the consumer once with the full response
+                if (fullResponse.length() < 2000) {
+                    consumer.accept(fullResponse);
+                } else {
+                    return new ResponseInfo(
+                            googleAIRequest.getModel(),
+                            "Google AI",
+                            fullResponse,
+                            null,
+                            null,
+                            fullPrompt
+                    );
+                }
+                
+                return new ResponseInfo(
+                        googleAIRequest.getModel(),
+                        "Google AI",
+                        fullResponse,
+                        null, // Google AI doesn't provide token count in simple response
+                        null, // Google AI doesn't provide token count in simple response
+                        fullPrompt
+                );
+                
+            } catch (Exception e) {
+                Constants.LOGGER.error("Failed to get response from Google AI", e);
+                throw new FailedResponseInfo(
+                        fullPrompt,
+                        failedResult,
+                        "Google AI returned an error: " + e.getMessage()
+                );
             }
         });
     }
@@ -967,6 +1039,11 @@ public class Roleplay {
         this.provider = provider;
     }
 
+    public void setAIProvider(AIProvider aiProvider) {
+        server.updateConfig(config -> config.get("ai_provider", String.class).setValue(aiProvider.name()));
+        this.aiProvider = aiProvider;
+    }
+
     public double getTemperature() {
         return temperature;
     }
@@ -981,6 +1058,10 @@ public class Roleplay {
 
     public Model getModel() {
         return model;
+    }
+
+    public AIProvider getAIProvider() {
+        return aiProvider;
     }
 
     private HashMap<String, World> getWorlds() {

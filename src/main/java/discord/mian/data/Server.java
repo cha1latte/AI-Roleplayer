@@ -104,6 +104,11 @@ public class Server {
         imgbb.setValue("");
         configuration.putIfAbsent("imgbb_key", imgbb);
 
+        ConfigEntry<String> googleAI = new ConfigEntry<>(String.class);
+        googleAI.setDescription("The API key to use for Google AI Studio models");
+        googleAI.setValue("");
+        configuration.putIfAbsent("google_ai_key", googleAI);
+
         ConfigEntry<Boolean> onlyChatOnMention = new ConfigEntry<>(Boolean.class);
         onlyChatOnMention.setDescription("Whether the AI will only reply when mentioned through reply or its name");
         onlyChatOnMention.setValue(false);
@@ -144,6 +149,12 @@ public class Server {
         model.setValue(Constants.DEFAULT_MODEL);
         configuration.putIfAbsent("model", model);
 
+        ConfigEntry<String> aiProvider = new ConfigEntry<>(String.class);
+        aiProvider.setDescription("The AI provider to use (OpenRouter or Google AI)");
+        aiProvider.setHidden(true);
+        aiProvider.setValue("OPENROUTER");
+        configuration.putIfAbsent("ai_provider", aiProvider);
+
         return configuration;
     }
 
@@ -164,6 +175,14 @@ public class Server {
 
     public String getLLMKey() {
         return (getConfig().get("open_router_key", String.class)).getValue();
+    }
+    
+    public String getGoogleAIKey() {
+        return (getConfig().get("google_ai_key", String.class)).getValue();
+    }
+    
+    public String getAIProvider() {
+        return (getConfig().get("ai_provider", String.class)).getValue();
     }
 
     public HashMap<String, ? extends Data<?>> getDatas(PromptType promptType) {
