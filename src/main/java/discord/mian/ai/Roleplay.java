@@ -290,9 +290,12 @@ public class Roleplay {
     }
 
     private RestAction<ResponseInfo> generateResponse(Character character, Consumer<String> consumer) {
+        Constants.LOGGER.info("generateResponse called with aiProvider: " + aiProvider);
         if (aiProvider == AIProvider.GOOGLE_AI) {
+            Constants.LOGGER.info("Using Google AI response generation");
             return generateGoogleAIResponse(character, consumer);
         } else {
+            Constants.LOGGER.info("Using OpenRouter response generation");
             return generateOpenRouterResponse(character, consumer);
         }
     }
