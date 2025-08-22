@@ -3,6 +3,7 @@ package discord.mian.commands.custom;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import discord.mian.ai.AIBot;
+import discord.mian.ai.AIProvider;
 import discord.mian.ai.Model;
 import discord.mian.ai.Roleplay;
 import discord.mian.commands.SlashCommand;
@@ -28,16 +29,22 @@ import java.util.stream.Collectors;
 
 public class ChangeModel extends SlashCommand {
     public ChangeModel() {
-        super("model", "Change the LLM being used");
+        super("model", "Change the LLM being used (shows models for current AI provider)");
         this.addOption(OptionType.STRING, "name", "The model to use", true, true);
         this.setContexts(InteractionContextType.GUILD);
     }
 
-    @Override
-    public boolean handle(SlashCommandInteractionEvent event) throws Exception {
-        String id = event.getOption("name", OptionMapping::getAsString);
+    private Map<String, String> getGoogleAIModels() {
+        // Available Google AI models
+        return Map.of(
+            "gemini-2.5-flash", "Gemini 2.5 Flash",
+            "gemini-1.5-flash", "Gemini 1.5 Flash", 
+            "gemini-1.5-pro", "Gemini 1.5 Pro",
+            "gemini-1.0-pro", "Gemini 1.0 Pro"
+        );
+    }
 
-        Map<String, String> validModels = Map.of();
+    private Map<String, String> getOpenRouterModels() throws IOException {
         OkHttpClient client = new OkHttpClient.Builder().build();
 
         Request request = new Request.Builder()
@@ -51,56 +58,77 @@ public class ChangeModel extends SlashCommand {
             JsonNode node = mapper.readTree(response.body().string());
             JsonNode dataNode = node.get("data");
 
-            validModels = dataNode.valueStream().collect(Collectors.toMap(
+            return dataNode.valueStream().collect(Collectors.toMap(
                     model -> model.get("id").asText(),
                     model -> model.get("name").asText()
             ));
         }
+    }
 
-        if (!validModels.containsKey(id)) {
-            event.reply("Not a valid model on OpenRouter!").setEphemeral(true).queue();
-            return true;
+    @Override
+    public boolean handle(SlashCommandInteractionEvent event) throws Exception {
+        String id = event.getOption("name", OptionMapping::getAsString);
+        Roleplay roleplay = AIBot.bot.getChat(event.getGuild());
+        AIProvider currentProvider = roleplay.getAIProvider();
+
+        Map<String, String> validModels;
+        
+        if (currentProvider == AIProvider.GOOGLE_AI) {
+            validModels = getGoogleAIModels();
+            
+            if (!validModels.containsKey(id)) {
+                event.reply("Not a valid Google AI model! Available models: " + 
+                           String.join(", ", validModels.values())).setEphemeral(true).queue();
+                return true;
+            }
+        } else {
+            // OpenRouter
+            validModels = getOpenRouterModels();
+            
+            if (!validModels.containsKey(id)) {
+                event.reply("Not a valid model on OpenRouter!").setEphemeral(true).queue();
+                return true;
+            }
+            
+            // Check provider compatibility for OpenRouter
+            HashMap<String, Double> endpoints = ChangeProvider.getEndpoints(id);
+            if (roleplay.getProvider() != null && !roleplay.getProvider().isEmpty() && !endpoints.containsKey(roleplay.getProvider())) {
+                roleplay.setProvider(null); // invalid provider!
+            }
         }
 
         Map<String, String> finalValidModels = validModels;
-
-        Roleplay roleplay = AIBot.bot.getChat(event.getGuild());
         Consumer<InteractionHook> consumer = (interactionHook) -> roleplay
                 .setModel(new Model(id, finalValidModels.get(id)));
 
-        HashMap<String, Double> endpoints = ChangeProvider.getEndpoints(id);
-        if (roleplay.getProvider() != null && !roleplay.getProvider().isEmpty() && !endpoints.containsKey(roleplay.getProvider())) {
-            roleplay.setProvider(null); // invalid provider!
-        }
-
-        ReplyCallbackAction reply = event.reply("Changed model!").setEphemeral(true);
+        String providerName = currentProvider == AIProvider.GOOGLE_AI ? "Google AI" : "OpenRouter";
+        ReplyCallbackAction reply = event.reply("Changed " + providerName + " model to: " + validModels.get(id)).setEphemeral(true);
         reply.queue(consumer);
         return true;
     }
 
     @Override
     public void autoComplete(CommandAutoCompleteInteractionEvent event) {
-        OkHttpClient client = new OkHttpClient.Builder().build();
-
-        Request request = new Request.Builder()
-                .url("https://openrouter.ai/api/v1/models")
-                .get()
-                .build();
-
-        Call call = client.newCall(request);
-        try (Response response = call.execute()) {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode node = mapper.readTree(response.body().string());
-            JsonNode dataNode = node.get("data");
-
-            HashMap<String, String> models = new HashMap<>();
-
-            dataNode.forEach(model -> {
-                String id = model.get("id").asText();
-                String modelName = model.get("name").asText();
-
-                models.put(modelName, id);
-            });
+        try {
+            Roleplay roleplay = AIBot.bot.getChat(event.getGuild());
+            AIProvider currentProvider = roleplay.getAIProvider();
+            
+            Map<String, String> models;
+            
+            if (currentProvider == AIProvider.GOOGLE_AI) {
+                models = getGoogleAIModels();
+                // For Google AI, we invert the map to show display names first
+                Map<String, String> displayModels = new HashMap<>();
+                models.forEach((id, name) -> displayModels.put(name, id));
+                models = displayModels;
+            } else {
+                // OpenRouter
+                models = getOpenRouterModels();
+                // Invert the map to show display names first for consistency
+                Map<String, String> displayModels = new HashMap<>();
+                models.forEach((id, name) -> displayModels.put(name, id));
+                models = displayModels;
+            }
 
             String selectedModel = event.getFocusedOption().getValue().toLowerCase();
             AtomicInteger count = new AtomicInteger();
@@ -110,8 +138,9 @@ public class ChangeModel extends SlashCommand {
                     .filter(modelName -> modelName.toLowerCase().contains(selectedModel)
                             && count.getAndIncrement() < 25)
                     .map(modelName -> new Command.Choice(modelName, models.get(modelName))).toList()).queue();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            // Fallback to empty list if there's an error
+            event.replyChoices(java.util.List.of()).queue();
         }
     }
 }
