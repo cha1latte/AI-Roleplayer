@@ -28,7 +28,7 @@ public class ChangeProvider extends SlashCommand {
 
     public ChangeProvider() {
         super("provider",
-                "Change the provider being used");
+                "Change the OpenRouter endpoint/company (Anthropic, OpenAI, Meta, etc.)");
         this.addOption(OptionType.STRING, "name", "Prices are measured as one response per million tokens. Aim for around $1.50 for cheap responses", false, true);
         this.setContexts(InteractionContextType.GUILD);
     }

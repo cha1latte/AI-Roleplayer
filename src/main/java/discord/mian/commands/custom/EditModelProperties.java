@@ -25,7 +25,7 @@ public class EditModelProperties extends SlashCommand {
     }
 
     public EditModelProperties() {
-        super("edit_model", "Choose model, temp, providers, etc!");
+        super("edit_model", "Configure model, temperature, OpenRouter endpoints, etc!");
         SUBCOMMANDS.forEach((name, command) ->
                 this.addSubcommands(new SubcommandData(name, command.getDescription())
                         .addOptions(command.getOptions())));
