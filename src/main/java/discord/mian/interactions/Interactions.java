@@ -990,8 +990,13 @@ public class Interactions {
                 List<ContainerChildComponent> containerComponents = new ArrayList<>();
 
                 byte[] data = null;
-                try (InputStream stream = chat.getCurrentCharacter().downloadAvatar()) {
-                    data = stream.readAllBytes();
+                try {
+                    InputStream stream = chat.getCurrentCharacter().downloadAvatar();
+                    if (stream != null) {
+                        try (InputStream avatarStream = stream) {
+                            data = avatarStream.readAllBytes();
+                        }
+                    }
                 } catch (Exception e) {
                     Constants.LOGGER.error("Failed to get avatar, using backup", e);
                 }
