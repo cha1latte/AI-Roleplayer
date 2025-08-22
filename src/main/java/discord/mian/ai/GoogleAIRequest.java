@@ -1,7 +1,6 @@
 package discord.mian.ai;
 
 import com.google.genai.Client;
-import com.google.genai.types.GenerateContentRequest;
 import com.google.genai.types.GenerateContentResponse;
 import io.github.sashirestela.openai.domain.chat.ChatMessage;
 
@@ -15,7 +14,9 @@ public class GoogleAIRequest {
     private final int maxTokens;
 
     public GoogleAIRequest(String apiKey, String model, List<ChatMessage> messages, double temperature, int maxTokens) {
-        this.client = new Client(apiKey);
+        // Set API key as environment variable for the client
+        System.setProperty("GEMINI_API_KEY", apiKey);
+        this.client = new Client();
         this.model = model;
         this.messages = messages;
         this.temperature = temperature;
@@ -41,22 +42,8 @@ public class GoogleAIRequest {
     public GenerateContentResponse generate() {
         String prompt = convertMessagesToPrompt();
         
-        GenerateContentRequest request = GenerateContentRequest.builder()
-            .contents(List.of(
-                com.google.genai.types.Content.builder()
-                    .role("user")
-                    .parts(List.of(com.google.genai.types.Part.text(prompt)))
-                    .build()
-            ))
-            .generationConfig(
-                com.google.genai.types.GenerationConfig.builder()
-                    .temperature((float) temperature)
-                    .maxOutputTokens(maxTokens)
-                    .build()
-            )
-            .build();
-
-        return client.models().generateContent(model, request);
+        // Use the simple API as shown in the documentation
+        return client.models.generateContent(model, prompt, null);
     }
 
     public Client getClient() {
