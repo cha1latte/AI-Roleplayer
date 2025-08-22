@@ -15,7 +15,7 @@ public class GoogleAIRequest {
 
     public GoogleAIRequest(String apiKey, String model, List<ChatMessage> messages, double temperature, int maxTokens) {
         // Set API key as environment variable for the client
-        System.setProperty("GEMINI_API_KEY", apiKey);
+        System.setProperty("GOOGLE_API_KEY", apiKey);
         this.client = new Client();
         this.model = model;
         this.messages = messages;
