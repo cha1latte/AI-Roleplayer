@@ -146,7 +146,9 @@ public class Roleplay {
 
     public List<ChatMessage> trimListToMeetTokens(List<ChatMessage> msgs, int startAt) {
         String id = this.model.id;
-        Encoding enc = registry.getEncodingForModel(id.substring(id.lastIndexOf("/")))
+        // Handle both OpenRouter format (author/model) and Google AI format (model-name)
+        String modelName = id.contains("/") ? id.substring(id.lastIndexOf("/") + 1) : id;
+        Encoding enc = registry.getEncodingForModel(modelName)
                 .orElse(registry.getEncoding(EncodingType.CL100K_BASE));
 
         String combinedText = combinePrompts(msgs);
