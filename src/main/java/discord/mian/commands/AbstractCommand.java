@@ -15,7 +15,7 @@ public abstract class AbstractCommand {
     private final String description;
 
     public AbstractCommand(String name, String description) {
-        this(name, description, null);
+        this(name, description, (OptionData[]) null);
     }
 
     public AbstractCommand(String name, String description, OptionData... optionDatas) {

@@ -1026,11 +1026,9 @@ public class Interactions {
                             TextDisplay.of("Metadata about the generated response")
                     ));
                 } else {
-                    // No image available, just add text
-                    containerComponents.add(Section.of(
-                            TextDisplay.of("# Response Information"),
-                            TextDisplay.of("Metadata about the generated response")
-                    ));
+                    // No image available, just add text displays directly
+                    containerComponents.add(TextDisplay.of("# Response Information"));
+                    containerComponents.add(TextDisplay.of("Metadata about the generated response"));
                 }
                 containerComponents.add(Separator.createDivider(Separator.Spacing.SMALL));
                 containerComponents.add(TextDisplay.of("-# The json file sent to the LLM for a response"));
