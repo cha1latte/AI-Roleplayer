@@ -1034,8 +1034,18 @@ public class Interactions {
                         .useComponentsV2()
                         .queue();
             } catch (Exception e) {
-                event.reply("Failed to retrieve response information!").setEphemeral(true).queue();
-                Constants.LOGGER.info(e.toString());
+                try {
+                    event.getHook().editOriginal("Failed to retrieve response information!").queue();
+                } catch (Exception hookError) {
+                    // If hook fails, try direct reply as fallback
+                    try {
+                        event.reply("Failed to retrieve response information!").setEphemeral(true).queue();
+                    } catch (Exception replyError) {
+                        // Both methods failed, just log
+                        Constants.LOGGER.error("Failed to send error message for response info", replyError);
+                    }
+                }
+                Constants.LOGGER.error("Failed to retrieve response information", e);
             }
         };
     }
