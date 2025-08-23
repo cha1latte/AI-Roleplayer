@@ -22,93 +22,19 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDate;
-import java.time.Month;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class Util {
-    public static final HashMap<Predicate<LocalDate>, List<String>> TOOL_TIPS = new HashMap<>();
     public static MongoDatabase DATABASE;
-
-    static {
-        TOOL_TIPS.put(date -> true, List.of(
-                "This is super queer :o",
-                "You're valid everyday 💖",
-                "Meow! 😺😽",
-                "I love roleplaying every single day grrr 🦸",
-                "Oooh they want me here, they need me here, they have to show me I've got work right now~",
-                "Check out Rimworld, it's a pretty hawt game :>",
-                "WorldBox is if you were God but went on crack!"
-        ));
-
-        TOOL_TIPS.put(currentDate -> currentDate.equals(LocalDate.of(currentDate.getYear(), Month.MARCH, 31)),
-                List.of(
-                        "Happy Transgender Day of Visibility! 🏳️‍⚧️"
-                ));
-
-        TOOL_TIPS.put(currentDate -> {
-                    LocalDate startOfWeek = LocalDate.of(currentDate.getYear(), Month.NOVEMBER, 13);
-                    LocalDate endOfWeek = startOfWeek.plusDays(6);
-
-                    return !currentDate.isBefore(startOfWeek) && !currentDate.isBefore(endOfWeek);
-                },
-                List.of(
-                        "I wish I could be a girl and that way you'd wish I could be your girlfriend boyfriend~",
-                        "Who cares what's in your pants? 🤔",
-                        "Your chromosomes do not define who you are 🏳️‍⚧️",
-                        "Ngl people who identify as vampires, cats, dogs, etc, are cool af 🤘",
-                        "No one can tell you who you are.",
-                        "Trans people are hot 🥚",
-                        "Trans rights are human rights!"
-                ));
-
-        TOOL_TIPS.put(curentDate -> curentDate.getMonth() == Month.JUNE,
-                List.of(
-                        "Happy Pride Month! 🌈",
-                        "WOHOO!! SHOW OFF THAT PRIDE!",
-                        "Those bigots ain't got shit on us",
-                        "Celebrating Pride Month with joy! 🥳"
-                ));
-
-        TOOL_TIPS.put(currentDate -> currentDate.equals(LocalDate.of(currentDate.getYear(), Month.APRIL, 26)),
-                List.of(
-                        "Happy Lesbian Visibility Day! 🏳️‍🌈"
-                ));
-
-        // lesbian visibility week
-        TOOL_TIPS.put(currentDate -> {
-            LocalDate visibilityDay = LocalDate.of(currentDate.getYear(), Month.APRIL, 26);
-            LocalDate startOfWeek = visibilityDay.minusDays(visibilityDay.getDayOfWeek().getValue() - 1);
-            LocalDate endOfWeek = startOfWeek.plusDays(6);
-
-            return !currentDate.isBefore(startOfWeek) && !currentDate.isAfter(endOfWeek);
-        }, List.of(
-                "Ever heard of the hit robot lesbian game Signalis?",
-                "LESBIANS UNITE! ✊",
-                "Did you ever notice that the lesbian flag kinda looks like bacon? 🥓",
-                "Doesn't it suck when a woman steals your chick? 😎",
-                "Girls are pretty :o 👧",
-                "SHE'S SO PRETTY!!!"
-        ));
-    }
 
     public static final List<String> IMAGE_EXTENSIONS = List.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
 
     public static String getRandomToolTip() {
-        LocalDate date = LocalDate.now();
-        List<String> validStrings = new ArrayList<>();
-
-        TOOL_TIPS.forEach((predicate, strings) -> {
-            if (predicate.test(date))
-                validStrings.addAll(strings);
-        });
-
-        return validStrings.get((int) (Math.random() * validStrings.size()));
+        // Flavor text feature disabled - return empty string
+        return "";
     }
 
     public static String botifyMessage(String string) {
