@@ -73,7 +73,6 @@ public class GoogleAIRequest {
             }
             
             String responseBody = response.body().string();
-            ObjectMapper mapper = new ObjectMapper();
             JsonNode jsonResponse = mapper.readTree(responseBody);
             
             JsonNode candidates = jsonResponse.get("candidates");
