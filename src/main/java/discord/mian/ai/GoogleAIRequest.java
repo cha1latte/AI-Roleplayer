@@ -18,8 +18,6 @@ public class GoogleAIRequest {
     private final int maxTokens;
 
     public GoogleAIRequest(String apiKey, String model, List<ChatMessage> messages, double temperature, int maxTokens) {
-        // Debug logging
-        discord.mian.Constants.LOGGER.info("GoogleAIRequest constructor called with apiKey: " + (apiKey != null ? "***SET***" : "NULL"));
         
         if (apiKey == null || apiKey.isEmpty()) {
             throw new IllegalArgumentException("Google AI API key is null or empty");
@@ -38,8 +36,6 @@ public class GoogleAIRequest {
 
     public GoogleAIResponse generate() throws IOException {
         String prompt = convertMessagesToPrompt();
-        discord.mian.Constants.LOGGER.info("Making Google AI request for model: " + model);
-        discord.mian.Constants.LOGGER.info("Prompt length: " + prompt.length() + " characters");
         
         OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(Duration.ofSeconds(30))
@@ -60,16 +56,12 @@ public class GoogleAIRequest {
                     "maxOutputTokens", maxTokens
                 )
             );
-            discord.mian.Constants.LOGGER.info("Creating request body JSON...");
             String requestBody;
             try {
                 requestBody = mapper.writeValueAsString(contentMap);
-                discord.mian.Constants.LOGGER.info("JSON created successfully, request body length: " + requestBody.length());
             } catch (Exception jsonException) {
-                discord.mian.Constants.LOGGER.error("Failed to create JSON request body", jsonException);
                 throw new IOException("Failed to create JSON request body: " + jsonException.getMessage(), jsonException);
             }
-            discord.mian.Constants.LOGGER.info("Request body prepared, making API call...");
             
             Request request = new Request.Builder()
                 .url("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + apiKey)
@@ -77,9 +69,7 @@ public class GoogleAIRequest {
                 .post(RequestBody.create(requestBody, MediaType.get("application/json; charset=utf-8")))
                 .build();
                 
-            discord.mian.Constants.LOGGER.info("Executing Google AI API request...");
             try (Response response = client.newCall(request).execute()) {
-            discord.mian.Constants.LOGGER.info("Received response from Google AI with status: " + response.code());
             if (!response.isSuccessful()) {
                 String errorBody = response.body() != null ? response.body().string() : "No error details";
                 discord.mian.Constants.LOGGER.error("Google AI API request failed. Status: " + response.code() + 
@@ -101,7 +91,22 @@ public class GoogleAIRequest {
                     JsonNode parts = content.get("parts");
                     if (parts != null && parts.isArray() && parts.size() > 0) {
                         String text = parts.get(0).get("text").asText();
-                        return new GoogleAIResponse(text);
+                        
+                        // Extract usage metadata if available
+                        JsonNode usageMetadata = jsonResponse.get("usageMetadata");
+                        Integer promptTokens = null;
+                        Integer completionTokens = null;
+                        
+                        if (usageMetadata != null) {
+                            if (usageMetadata.has("promptTokenCount")) {
+                                promptTokens = usageMetadata.get("promptTokenCount").asInt();
+                            }
+                            if (usageMetadata.has("candidatesTokenCount")) {
+                                completionTokens = usageMetadata.get("candidatesTokenCount").asInt();
+                            }
+                        }
+                        
+                        return new GoogleAIResponse(text, promptTokens, completionTokens);
                     }
                 }
             }
@@ -117,13 +122,32 @@ public class GoogleAIRequest {
     
     public static class GoogleAIResponse {
         private final String text;
+        private final Integer promptTokens;
+        private final Integer completionTokens;
         
-        public GoogleAIResponse(String text) {
+        public GoogleAIResponse(String text, Integer promptTokens, Integer completionTokens) {
             this.text = text;
+            this.promptTokens = promptTokens;
+            this.completionTokens = completionTokens;
         }
         
         public String text() {
             return text;
+        }
+        
+        public Integer getPromptTokens() {
+            return promptTokens;
+        }
+        
+        public Integer getCompletionTokens() {
+            return completionTokens;
+        }
+        
+        public Integer getTotalTokens() {
+            if (promptTokens != null && completionTokens != null) {
+                return promptTokens + completionTokens;
+            }
+            return null;
         }
     }
 

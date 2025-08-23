@@ -66,6 +66,12 @@ public class ResponseInfo implements PromptInfo, ProviderInfo {
 
     public Double getPrice() {
         try {
+            // Handle Google AI models differently from OpenRouter models
+            if (provider != null && provider.equals("Google AI")) {
+                return calculateGoogleAIPrice();
+            }
+            
+            // OpenRouter pricing logic
             String author = model.substring(0, model.indexOf("/"));
             String slug = model.substring(model.indexOf("/") + 1);
 
@@ -99,5 +105,50 @@ public class ResponseInfo implements PromptInfo, ProviderInfo {
             Constants.LOGGER.error("Failed to get price for response info", e);
         }
         return null;
+    }
+    
+    private Double calculateGoogleAIPrice() {
+        if (promptTokens == null || completionTokens == null) {
+            return null;
+        }
+        
+        // Google AI Studio pricing (as of 2024) - prices per 1M tokens
+        // Source: https://ai.google.dev/pricing
+        double inputPricePerMillion;
+        double outputPricePerMillion;
+        
+        switch (model.toLowerCase()) {
+            case "gemini-2.5-flash":
+                inputPricePerMillion = 0.075;   // $0.075 per 1M input tokens
+                outputPricePerMillion = 0.30;   // $0.30 per 1M output tokens
+                break;
+            case "gemini-2.5-pro":
+                inputPricePerMillion = 1.25;    // $1.25 per 1M input tokens
+                outputPricePerMillion = 5.00;   // $5.00 per 1M output tokens
+                break;
+            case "gemini-1.5-flash":
+                inputPricePerMillion = 0.075;   // $0.075 per 1M input tokens
+                outputPricePerMillion = 0.30;   // $0.30 per 1M output tokens
+                break;
+            case "gemini-1.5-pro":
+                inputPricePerMillion = 1.25;    // $1.25 per 1M input tokens
+                outputPricePerMillion = 5.00;   // $5.00 per 1M output tokens
+                break;
+            case "gemini-1.0-pro":
+                inputPricePerMillion = 0.50;    // $0.50 per 1M input tokens
+                outputPricePerMillion = 1.50;   // $1.50 per 1M output tokens
+                break;
+            default:
+                // Default to Gemini 2.5 Flash pricing if model unknown
+                inputPricePerMillion = 0.075;
+                outputPricePerMillion = 0.30;
+                break;
+        }
+        
+        // Calculate total cost
+        double inputCost = (promptTokens / 1000000.0) * inputPricePerMillion;
+        double outputCost = (completionTokens / 1000000.0) * outputPricePerMillion;
+        
+        return inputCost + outputCost;
     }
 }

@@ -430,8 +430,8 @@ public class Roleplay {
                             googleAIRequest.getModel(),
                             "Google AI",
                             fullResponse,
-                            null,
-                            null,
+                            response.getPromptTokens(),
+                            response.getCompletionTokens(),
                             fullPrompt
                     );
                 }
@@ -440,8 +440,8 @@ public class Roleplay {
                         googleAIRequest.getModel(),
                         "Google AI",
                         fullResponse,
-                        null, // Google AI doesn't provide token count in simple response
-                        null, // Google AI doesn't provide token count in simple response
+                        response.getPromptTokens(),
+                        response.getCompletionTokens(),
                         fullPrompt
                 );
                 
