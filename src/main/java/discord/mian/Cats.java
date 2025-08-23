@@ -6,6 +6,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.Random;
 
 public class Cats {
@@ -21,7 +22,11 @@ public class Cats {
         if (isGif)
             url = "https://cataas.com/cat/gif";
 
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .readTimeout(Duration.ofSeconds(15))
+            .writeTimeout(Duration.ofSeconds(10))
+            .build();
 
         Request request = new Request.Builder()
                 .url(url)
@@ -33,8 +38,12 @@ public class Cats {
             InputStream inputStream = response.body().byteStream();
             file = inputStream.readAllBytes();
             IsGif = isGif;
+            Constants.LOGGER.info("Successfully fetched cat image");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            Constants.LOGGER.error("Failed to fetch cat image, continuing without it", e);
+            // Don't throw the exception - just continue without the cat image
+            file = new byte[0];
+            IsGif = false;
         }
     }
 
