@@ -873,7 +873,6 @@ public class Interactions {
 
         List<ContainerChildComponent> components = new ArrayList<>();
         components.add(Section.of(
-                Thumbnail.fromFile(FileUpload.fromData(data != null ? data : Util.getRandomImage(), fileName)),
                 TextDisplay.of("# Dashboard")
         ));
 
