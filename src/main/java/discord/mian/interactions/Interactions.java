@@ -872,9 +872,7 @@ public class Interactions {
                 .withDisabled(!roleplay.isRunningRoleplay() || message.getChannelType().isThread()));
 
         List<ContainerChildComponent> components = new ArrayList<>();
-        components.add(Section.of(
-                TextDisplay.of("# Dashboard")
-        ));
+        components.add(TextDisplay.of("# Dashboard"));
 
         components.add(Separator.createDivider(Separator.Spacing.SMALL));
 
