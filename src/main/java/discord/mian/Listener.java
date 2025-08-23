@@ -171,15 +171,24 @@ public class Listener {
                 Constants.LOGGER.info("Message is in roleplay channel, processing...");
                 Random random = new Random();
 
+                Constants.LOGGER.info("Looking for character from content: '" + msg.getContentRaw() + "'");
                 Character fromContent = roleplay.findRespondingCharacterFromContent(msg.getContentRaw());
-                if (fromContent != null && !fromContent.getName().equals(event.getAuthor().getName()))
+                Constants.LOGGER.info("Character from content: " + (fromContent != null ? fromContent.getName() : "none"));
+                
+                if (fromContent != null && !fromContent.getName().equals(event.getAuthor().getName())) {
+                    Constants.LOGGER.info("Prompting character from content: " + fromContent.getName());
                     roleplay.promptCharacterToRoleplay(fromContent, msg, true);
-                else {
+                } else {
+                    Constants.LOGGER.info("Looking for character from message mentions/replies");
                     Character data = roleplay.findRespondingCharacterFromMessage(msg);
+                    Constants.LOGGER.info("Character from message: " + (data != null ? data.getName() : "none"));
+                    
                     if (data != null && !data.getName().equals(event.getAuthor().getName())) {
+                        Constants.LOGGER.info("Prompting character from message: " + data.getName());
                         roleplay.promptCharacterToRoleplay(data, msg, true);
                     } else if (!AIBot.bot.getServerData(event.getGuild()).getConfig()
                             .get("only_chat_on_mention", Boolean.class).getValue()) {
+                        Constants.LOGGER.info("No specific character found, checking random selection...");
 
                         if (random.nextBoolean()) {
                             final double total = roleplay.getDatas(PromptType.CHARACTER).stream()

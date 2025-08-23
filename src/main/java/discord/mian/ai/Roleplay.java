@@ -496,7 +496,12 @@ public class Roleplay {
     }
 
     public void promptCharacterToRoleplay(Character character, Message replyTo, boolean triggerAutoResponse) {
+        Constants.LOGGER.info("promptCharacterToRoleplay called with character: " + character.getName() + 
+            ", replyTo: " + (replyTo != null ? replyTo.getContentRaw() : "null") + 
+            ", triggerAutoResponse: " + triggerAutoResponse);
+            
         if (isRunningRoleplay()) {
+            Constants.LOGGER.info("Roleplay is running, processing character prompt");
             if (!characters.containsKey(character.getName())) {
                 Consumer<Throwable> onFail = t ->
                         Constants.LOGGER.error("Failed to add character into roleplay", t);
