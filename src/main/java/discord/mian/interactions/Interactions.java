@@ -874,8 +874,6 @@ public class Interactions {
         List<ContainerChildComponent> components = new ArrayList<>();
         components.add(TextDisplay.of("# Dashboard"));
 
-        components.add(Separator.createDivider(Separator.Spacing.SMALL));
-
         double remaining = 0;
 
         if (key != null && !key.isEmpty()) {
