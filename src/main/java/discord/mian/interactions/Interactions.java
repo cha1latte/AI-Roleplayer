@@ -916,7 +916,6 @@ public class Interactions {
         components.add(TextDisplay.of(creditsInfo));
 
         components.add(Separator.createDivider(Separator.Spacing.SMALL));
-        components.add(TextDisplay.of("**Temperature:** " + roleplay.getTemperature()));
         components.add(TextDisplay.of("**Max Tokens:** " + roleplay.getMaxTokens()));
         components.add(Separator.createDivider(Separator.Spacing.SMALL));
 

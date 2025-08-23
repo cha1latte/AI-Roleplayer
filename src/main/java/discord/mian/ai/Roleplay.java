@@ -63,7 +63,6 @@ public class Roleplay {
     private Call callForResponse;
     private boolean makingResponse;
     private int maxTokens;
-    private double temperature;
     private Model model;
     private String provider;
     private AIProvider aiProvider;
@@ -101,7 +100,6 @@ public class Roleplay {
 
         ServerConfig configuration = server.getConfig();
 
-        this.setTemperature(server.getConfig().get("temperature", Double.class).getValue());
         this.setMaxTokens(configuration.get("tokens", Integer.class).getValue());
 
         String model = configuration.get("model", String.class).getValue();
@@ -274,7 +272,7 @@ public class Roleplay {
                 finalRequestBuilder.build(ChatRequest.builder()
                         .maxCompletionTokens(this.maxTokens)
                         .model(model.id)
-                        .temperature(temperature)
+                        .temperature(1.0)
                         .stream(true)
                         .messages(history)));
     }
@@ -285,7 +283,7 @@ public class Roleplay {
                         server.getGoogleAIKey(),
                         model.id,
                         history,
-                        temperature,
+                        1.0,
                         maxTokens
                 ));
     }
@@ -1035,10 +1033,6 @@ public class Roleplay {
         this.model = model;
     }
 
-    public void setTemperature(double temperature) {
-        server.updateConfig(config -> config.get("temperature", Double.class).setValue(temperature));
-        this.temperature = Math.max(0, Math.min(temperature, 2));
-    }
 
     public void setProvider(String provider) {
         server.updateConfig(config -> config.get("provider", String.class).setValue(provider));
@@ -1050,9 +1044,6 @@ public class Roleplay {
         this.aiProvider = aiProvider;
     }
 
-    public double getTemperature() {
-        return temperature;
-    }
 
     public int getMaxTokens() {
         return maxTokens;

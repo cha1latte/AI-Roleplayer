@@ -12,7 +12,6 @@ import java.util.HashMap;
 public class EditModelProperties extends SlashCommand {
     private static final ChangeModel MODEL = new ChangeModel();
     private static final ChangeProvider PROVIDER = new ChangeProvider();
-    private static final ChangeTemp TEMP = new ChangeTemp();
     private static final ChangeMaxTokens TOKENS = new ChangeMaxTokens();
 
     private static final HashMap<String, SlashCommand> SUBCOMMANDS = new HashMap<>();
@@ -20,12 +19,11 @@ public class EditModelProperties extends SlashCommand {
     static {
         SUBCOMMANDS.put(MODEL.getName(), MODEL);
         SUBCOMMANDS.put(PROVIDER.getName(), PROVIDER);
-        SUBCOMMANDS.put(TEMP.getName(), TEMP);
         SUBCOMMANDS.put(TOKENS.getName(), TOKENS);
     }
 
     public EditModelProperties() {
-        super("edit_model", "Configure model, temperature, OpenRouter endpoints, etc!");
+        super("edit_model", "Configure model, OpenRouter endpoints, max tokens, etc!");
         SUBCOMMANDS.forEach((name, command) ->
                 this.addSubcommands(new SubcommandData(name, command.getDescription())
                         .addOptions(command.getOptions())));

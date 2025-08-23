@@ -125,12 +125,6 @@ public class Server {
         botRole.setValue(0L);
         configuration.putIfAbsent("bot_role_id", botRole);
 
-        ConfigEntry<Double> temperature = new ConfigEntry<>(Double.class);
-        temperature.setDescription("Temperature of model");
-        temperature.setHidden(true);
-        temperature.setValue(1D);
-        configuration.putIfAbsent("temperature", temperature);
-
         ConfigEntry<Integer> tokens = new ConfigEntry<>(Integer.class);
         tokens.setDescription("Max tokens of model");
         tokens.setHidden(true);
