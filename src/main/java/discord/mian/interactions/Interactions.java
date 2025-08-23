@@ -8,6 +8,7 @@ import discord.mian.Constants;
 import discord.mian.Direction;
 import discord.mian.Util;
 import discord.mian.ai.AIBot;
+import discord.mian.ai.AIProvider;
 import discord.mian.ai.ResponseInfo;
 import discord.mian.ai.Roleplay;
 import discord.mian.api.PromptInfo;
@@ -874,37 +875,45 @@ public class Interactions {
         List<ContainerChildComponent> components = new ArrayList<>();
         components.add(TextDisplay.of("# Dashboard"));
 
-        double remaining = 0;
+        // Check current AI provider and show appropriate credits/quota info
+        AIProvider currentAiProvider = roleplay.getAIProvider();
+        String creditsInfo = "";
+        
+        if (currentAiProvider == AIProvider.OPENROUTER) {
+            double remaining = 0;
+            if (key != null && !key.isEmpty()) {
+                OkHttpClient client = new OkHttpClient.Builder().build();
 
-        if (key != null && !key.isEmpty()) {
-            OkHttpClient client = new OkHttpClient.Builder().build();
+                Request request = new Request.Builder()
+                        .url("https://openrouter.ai/api/v1/credits")
+                        .header("Authorization", "Bearer " + key)
+                        .get()
+                        .build();
 
-            Request request = new Request.Builder()
-                    .url("https://openrouter.ai/api/v1/credits")
-                    .header("Authorization", "Bearer " + key)
-                    .get()
-                    .build();
-
-            Call call = client.newCall(request);
-            try (Response response = call.execute()) {
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode node = mapper.readTree(response.body().string());
-                JsonNode dataNode = node.get("data");
-                if (dataNode != null) {
-                    double totalCredits = dataNode.get("total_credits").asDouble();
-                    double totalUsage = dataNode.get("total_usage").asDouble();
-                    remaining = totalCredits - totalUsage;
+                Call call = client.newCall(request);
+                try (Response response = call.execute()) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    JsonNode node = mapper.readTree(response.body().string());
+                    JsonNode dataNode = node.get("data");
+                    if (dataNode != null) {
+                        double totalCredits = dataNode.get("total_credits").asDouble();
+                        double totalUsage = dataNode.get("total_usage").asDouble();
+                        remaining = totalCredits - totalUsage;
+                    }
+                } catch (Exception e) {
+                    Constants.LOGGER.error("Failed to get usage amount for key", e);
                 }
-            } catch (Exception e) {
-                Constants.LOGGER.error("Failed to get usage amount for key", e);
             }
+            creditsInfo = "**Credits Remaining:** $" + String.format("%.2f", remaining);
+        } else if (currentAiProvider == AIProvider.GOOGLE_AI) {
+            creditsInfo = "**Quota Status:** Free Tier (Check [AI Studio](https://aistudio.google.com/) for limits)";
         }
 
         String provider = roleplay.getProvider();
 
         components.add(TextDisplay.of("**AI Model:** " + roleplay.getModel().getDisplay()));
         components.add(TextDisplay.of("**Forced Provider:** " + (provider != null && !provider.isEmpty() ? provider : "None")));
-        components.add(TextDisplay.of("**Credits Remaining:** " + "$" + String.format("%.2f", remaining)));
+        components.add(TextDisplay.of(creditsInfo));
 
         components.add(Separator.createDivider(Separator.Spacing.SMALL));
         components.add(TextDisplay.of("**Temperature:** " + roleplay.getTemperature()));
