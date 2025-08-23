@@ -461,14 +461,14 @@ public class Interactions {
             components.add(Separator.createDivider(Separator.Spacing.SMALL));
 
             ArrayList<Button> itemComponents = new ArrayList<>();
-            itemComponents.add(InteractionCreator.createButton("View Dashboard", (event) -> {
+            itemComponents.add(InteractionCreator.createPermanentButton(Button.primary("view_dashboard", "View Dashboard"), (event) -> {
                 event.deferEdit().queue();
                 try {
                     createDashboard(event.getMessage());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-            }).withEmoji(Emoji.fromFormatted("🔝")).withStyle(ButtonStyle.PRIMARY));
+            }).withEmoji(Emoji.fromFormatted("🔝")));
 
             components.add(ActionRow.of(itemComponents));
 
@@ -662,14 +662,14 @@ public class Interactions {
         if (canGoBack || editable) {
             ArrayList<Button> itemComponents = new ArrayList<>();
             if (canGoBack)
-                itemComponents.add(InteractionCreator.createButton("View Dashboard", (event) -> {
+                itemComponents.add(InteractionCreator.createPermanentButton(Button.primary("view_dashboard_2", "View Dashboard"), (event) -> {
                     event.deferEdit().queue();
                     try {
                         createDashboard(event.getMessage());
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
-                }).withEmoji(Emoji.fromFormatted("🔝")).withStyle(ButtonStyle.PRIMARY));
+                }).withEmoji(Emoji.fromFormatted("🔝")));
             if (editable)
                 itemComponents.add(InteractionCreator.createButton("Create Prompt", (event) -> {
                     if (!Util.hasMasterPermission(event.getMember())) {
@@ -930,25 +930,25 @@ public class Interactions {
         components.add(TextDisplay.of("### View Prompts"));
 
         components.add(ActionRow.of(
-                InteractionCreator.createButton("View Instructions", (event) -> {
+                InteractionCreator.createPermanentButton(Button.secondary("view_instructions", "View Instructions"), (event) -> {
                     event.deferEdit().queue();
                     createPromptViewer(event.getHook(), PromptType.INSTRUCTION, null, 0);
-                }).withEmoji(Emoji.fromFormatted("📋")).withStyle(ButtonStyle.SECONDARY),
-                InteractionCreator.createButton("View Worlds", (event) -> {
+                }).withEmoji(Emoji.fromFormatted("📋")),
+                InteractionCreator.createPermanentButton(Button.secondary("view_worlds", "View Worlds"), (event) -> {
                     event.deferEdit().queue();
                     createPromptViewer(event.getHook(), PromptType.WORLD, null, 0);
-                }).withEmoji(Emoji.fromFormatted("🌍")).withStyle(ButtonStyle.SECONDARY),
-                InteractionCreator.createButton("View Characters", (event) -> {
+                }).withEmoji(Emoji.fromFormatted("🌍")),
+                InteractionCreator.createPermanentButton(Button.secondary("view_characters", "View Characters"), (event) -> {
                     event.deferEdit().queue();
                     createPromptViewer(event.getHook(), PromptType.CHARACTER, null, 0);
-                }).withEmoji(Emoji.fromFormatted("🧝")).withStyle(ButtonStyle.SECONDARY)));
+                }).withEmoji(Emoji.fromFormatted("🧝"))));
 
         components.add(Separator.createDivider(Separator.Spacing.LARGE));
 
         components.add(TextDisplay.of("### Configuration"));
 
         components.add(ActionRow.of(
-                InteractionCreator.createButton("Server Configuration", (event) -> {
+                InteractionCreator.createPermanentButton(Button.secondary("server_configuration", "Server Configuration"), (event) -> {
                     event.deferEdit().queue();
 
                     if (!Util.hasMasterPermission(event.getMember())) {
@@ -956,7 +956,7 @@ public class Interactions {
                         return;
                     }
                     createConfigViewer(event.getHook(), 0);
-                }).withEmoji(Emoji.fromFormatted("⚙️")).withStyle(ButtonStyle.SECONDARY),
+                }).withEmoji(Emoji.fromFormatted("⚙️")),
                 Button.link("https://openrouter.ai/models?order=pricing-low-to-high", "Free AI models")
                         .withEmoji(Emoji.fromFormatted("🤖"))));
 
