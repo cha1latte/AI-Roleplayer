@@ -418,7 +418,7 @@ public class Roleplay {
             String failedResult = "";
             
             try {
-                GenerateContentResponse response = googleAIRequest.generate();
+                GoogleAIRequest.GoogleAIResponse response = googleAIRequest.generate();
                 
                 if (response == null || response.text() == null) {
                     throw new RuntimeException("Google AI returned no content");

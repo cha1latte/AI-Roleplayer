@@ -1,16 +1,15 @@
 package discord.mian.ai;
 
-import com.google.genai.Client;
-import com.google.genai.types.GenerateContentResponse;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.sashirestela.openai.domain.chat.ChatMessage;
+import okhttp3.*;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
-import java.lang.reflect.Field;
-import java.util.Map;
 
 public class GoogleAIRequest {
-    private final Client client;
+    private final String apiKey;
     private final String model;
     private final List<ChatMessage> messages;
     private final double temperature;
@@ -24,32 +23,75 @@ public class GoogleAIRequest {
             throw new IllegalArgumentException("Google AI API key is null or empty");
         }
         
-        // Try to set the API key in the environment through reflection
-        try {
-            setEnvironmentVariable("GOOGLE_API_KEY", apiKey);
-        } catch (Exception e) {
-            // Fallback to system property
-            System.setProperty("GOOGLE_API_KEY", apiKey);
-        }
-        this.client = new Client();
+        this.apiKey = apiKey;
         this.model = model;
         this.messages = messages;
         this.temperature = temperature;
         this.maxTokens = maxTokens;
     }
+    
+    public String getModel() {
+        return model;
+    }
 
-    @SuppressWarnings("unchecked")
-    private static void setEnvironmentVariable(String key, String value) throws Exception {
-        Class<?> processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
-        Field theEnvironmentField = processEnvironmentClass.getDeclaredField("theEnvironment");
-        theEnvironmentField.setAccessible(true);
-        Map<String, String> env = (Map<String, String>) theEnvironmentField.get(null);
-        env.put(key, value);
+    public GoogleAIResponse generate() throws IOException {
+        String prompt = convertMessagesToPrompt();
         
-        Field theCaseInsensitiveEnvironmentField = processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment");
-        theCaseInsensitiveEnvironmentField.setAccessible(true);
-        Map<String, String> cienv = (Map<String, String>) theCaseInsensitiveEnvironmentField.get(null);
-        cienv.put(key, value);
+        OkHttpClient client = new OkHttpClient.Builder().build();
+        
+        // Create request body for Google AI API
+        String requestBody = "{"
+            + "\"contents\": [{"
+            + "\"parts\": [{\"text\": \"" + prompt.replace("\"", "\\\"") + "\"}]"
+            + "}],"
+            + "\"generationConfig\": {"
+            + "\"temperature\": " + temperature + ","
+            + "\"maxOutputTokens\": " + maxTokens
+            + "}"
+            + "}";
+        
+        Request request = new Request.Builder()
+            .url("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + apiKey)
+            .header("Content-Type", "application/json")
+            .post(RequestBody.create(requestBody, MediaType.get("application/json; charset=utf-8")))
+            .build();
+            
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Google AI API request failed: " + response.code() + " " + response.message());
+            }
+            
+            String responseBody = response.body().string();
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jsonResponse = mapper.readTree(responseBody);
+            
+            JsonNode candidates = jsonResponse.get("candidates");
+            if (candidates != null && candidates.isArray() && candidates.size() > 0) {
+                JsonNode firstCandidate = candidates.get(0);
+                JsonNode content = firstCandidate.get("content");
+                if (content != null) {
+                    JsonNode parts = content.get("parts");
+                    if (parts != null && parts.isArray() && parts.size() > 0) {
+                        String text = parts.get(0).get("text").asText();
+                        return new GoogleAIResponse(text);
+                    }
+                }
+            }
+            
+            throw new IOException("No valid response from Google AI API");
+        }
+    }
+    
+    public static class GoogleAIResponse {
+        private final String text;
+        
+        public GoogleAIResponse(String text) {
+            this.text = text;
+        }
+        
+        public String text() {
+            return text;
+        }
     }
 
     public String convertMessagesToPrompt() {
