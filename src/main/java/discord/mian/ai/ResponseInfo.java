@@ -108,7 +108,7 @@ public class ResponseInfo implements PromptInfo, ProviderInfo {
     }
     
     private Double calculateGoogleAIPrice() {
-        if (promptTokens == null || completionTokens == null) {
+        if (!promptTokens.isPresent() || !completionTokens.isPresent()) {
             return null;
         }
         
@@ -146,8 +146,8 @@ public class ResponseInfo implements PromptInfo, ProviderInfo {
         }
         
         // Calculate total cost
-        double inputCost = (promptTokens / 1000000.0) * inputPricePerMillion;
-        double outputCost = (completionTokens / 1000000.0) * outputPricePerMillion;
+        double inputCost = (promptTokens.get() / 1000000.0) * inputPricePerMillion;
+        double outputCost = (completionTokens.get() / 1000000.0) * outputPricePerMillion;
         
         return inputCost + outputCost;
     }
