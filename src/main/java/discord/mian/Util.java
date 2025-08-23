@@ -254,6 +254,7 @@ public class Util {
     public static Container createBotContainer(List<ContainerChildComponent> moreComponents) {
         ArrayList<ContainerChildComponent> components = new ArrayList<>();
         components.add(TextDisplay.of("-# [Created By Your Lovely Girl: @MianReplicate](https://en.pronouns.page/@MianReplicate)"));
+        components.add(TextDisplay.of("-# Modded to Hell and Back by @cha1latte"));
         components.add(Separator.createDivider(Separator.Spacing.SMALL));
         components.addAll(moreComponents);
 
