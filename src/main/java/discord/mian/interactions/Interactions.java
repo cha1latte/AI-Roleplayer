@@ -921,7 +921,7 @@ public class Interactions {
 
         components.add(TextDisplay.of("### Roleplay Status: " + (roleplay.isRunningRoleplay() ? "Ongoing" : "Stopped")));
         if (roleplay.isRunningRoleplay()) {
-            components.add(TextDisplay.of("[More Information](" + roleplay.getChannel().getJumpUrl() + ")"));
+            components.add(TextDisplay.of("[Open Thread](" + roleplay.getChannel().getJumpUrl() + ")"));
         }
         components.add(ActionRow.of(roleplayComponents));
 
@@ -934,7 +934,7 @@ public class Interactions {
                     event.deferEdit().queue();
                     createPromptViewer(event.getHook(), PromptType.INSTRUCTION, null, 0);
                 }).withEmoji(Emoji.fromFormatted("📋")),
-                InteractionCreator.createPermanentButton(Button.secondary("view_worlds", "View Worlds"), (event) -> {
+                InteractionCreator.createPermanentButton(Button.secondary("view_worlds", "View Personas"), (event) -> {
                     event.deferEdit().queue();
                     createPromptViewer(event.getHook(), PromptType.WORLD, null, 0);
                 }).withEmoji(Emoji.fromFormatted("🌍")),
@@ -1073,7 +1073,7 @@ public class Interactions {
     }
 
     public static Button getContinue() {
-        return InteractionCreator.createPermanentButton(Button.primary("start_here", "Continue"),
+        return InteractionCreator.createPermanentButton(Button.primary("start_here", "Open Thread"),
                         button -> {
                             try {
                                 button.deferEdit().queue();
@@ -1108,7 +1108,7 @@ public class Interactions {
         componentList.add(TextDisplay.of("3. Depending on what you selected, you can either choose a name, edit the description, and etc. Go wild here!"));
         componentList.add(Separator.createDivider(Separator.Spacing.SMALL));
         componentList.add(TextDisplay.of("## Can I save specific roleplays and come back later?"));
-        componentList.add(TextDisplay.of("Yep! This is the whole reason why the bot creates your roleplays in threads. You can press \"Continue\" at any time to continue from a specific roleplay."));
+        componentList.add(TextDisplay.of("Yep! This is the whole reason why the bot creates your roleplays in threads. You can press \"Open Thread\" at any time to continue from a specific roleplay."));
         componentList.add(Separator.createDivider(Separator.Spacing.SMALL));
         componentList.add(TextDisplay.of("## How can I set permissions for what someone can do? 🛑"));
         componentList.add(TextDisplay.of("At the moment everyone can roleplay with the bot. The only few things people can't do is create and delete prompts or edit the server configuration.\n\nFor that, you must use /set_bot_role to assign a role that bypasses these restrictions."));
