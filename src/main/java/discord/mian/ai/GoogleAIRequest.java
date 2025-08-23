@@ -39,6 +39,7 @@ public class GoogleAIRequest {
     public GoogleAIResponse generate() throws IOException {
         String prompt = convertMessagesToPrompt();
         discord.mian.Constants.LOGGER.info("Making Google AI request for model: " + model);
+        discord.mian.Constants.LOGGER.info("Prompt length: " + prompt.length() + " characters");
         
         OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(Duration.ofSeconds(30))
@@ -59,7 +60,15 @@ public class GoogleAIRequest {
                     "maxOutputTokens", maxTokens
                 )
             );
-            String requestBody = mapper.writeValueAsString(contentMap);
+            discord.mian.Constants.LOGGER.info("Creating request body JSON...");
+            String requestBody;
+            try {
+                requestBody = mapper.writeValueAsString(contentMap);
+                discord.mian.Constants.LOGGER.info("JSON created successfully, request body length: " + requestBody.length());
+            } catch (Exception jsonException) {
+                discord.mian.Constants.LOGGER.error("Failed to create JSON request body", jsonException);
+                throw new IOException("Failed to create JSON request body: " + jsonException.getMessage(), jsonException);
+            }
             discord.mian.Constants.LOGGER.info("Request body prepared, making API call...");
             
             Request request = new Request.Builder()
