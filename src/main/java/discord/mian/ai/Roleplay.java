@@ -616,7 +616,7 @@ public class Roleplay {
             String avatarLink = currentCharacter.getDocument().getAvatar();
 
             WebhookMessageCreateAction<Message> messageCreateData = webhook.sendMessage(
-                            Util.botifyMessage("Currently creating a response! Check back in a second.."))
+                            Util.botifyMessage("Currently creating a response! Check back in a second..."))
                     .setThread(historyMarker)
                     .setComponents(ActionRow.of(Interactions.createCancellableResponse()))
                     .setUsername(currentCharacter.getName());
