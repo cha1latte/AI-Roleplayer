@@ -110,18 +110,4 @@ public class GoogleAIRequest {
         return prompt.toString().trim();
     }
 
-    public GenerateContentResponse generate() {
-        String prompt = convertMessagesToPrompt();
-        
-        // Use the simple API as shown in the documentation
-        return client.models.generateContent(model, prompt, null);
-    }
-
-    public Client getClient() {
-        return client;
-    }
-
-    public String getModel() {
-        return model;
-    }
 }

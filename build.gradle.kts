@@ -33,7 +33,6 @@ dependencies{
     implementation("com.fasterxml.jackson.core:jackson-core:$jackson_version");
     implementation("com.knuddels:jtokkit:$jtokkit_version")
     implementation("io.github.sashirestela:simple-openai:$openai_version")
-    implementation("com.google.genai:google-genai:$googleai_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
 }
 
