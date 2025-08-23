@@ -33,8 +33,8 @@ public class Util {
     public static final List<String> IMAGE_EXTENSIONS = List.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
 
     public static String getRandomToolTip() {
-        // Flavor text feature disabled - return empty string
-        return "";
+        // Flavor text feature disabled
+        return null;
     }
 
     public static String botifyMessage(String string) {
