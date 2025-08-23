@@ -190,22 +190,39 @@ public class Listener {
                             .get("only_chat_on_mention", Boolean.class).getValue()) {
                         Constants.LOGGER.info("No specific character found, checking random selection...");
 
-                        if (random.nextBoolean()) {
-                            final double total = roleplay.getDatas(PromptType.CHARACTER).stream()
+                        boolean shouldRandomlyRespond = random.nextBoolean();
+                        Constants.LOGGER.info("Random response decision: " + shouldRandomlyRespond);
+                        
+                        if (shouldRandomlyRespond) {
+                            List<Character> allCharacters = roleplay.getDatas(PromptType.CHARACTER).stream()
+                                    .map(data1 -> (Character) data1)
                                     .filter(data1 -> !data1.getName().equals(event.getAuthor().getName()))
-                                    .mapToDouble((data1) -> ((Character) data1).getDocument().getTalkability()).sum();
+                                    .toList();
+                            Constants.LOGGER.info("Available characters for random selection: " + 
+                                allCharacters.stream().map(Character::getName).toList());
+                                
+                            final double total = allCharacters.stream()
+                                    .mapToDouble(character -> character.getDocument().getTalkability()).sum();
+                            Constants.LOGGER.info("Total talkability: " + total);
 
                             double percentage = Math.random();
-                            List<Character> meetsCriteria = roleplay.getDatas(PromptType.CHARACTER).stream()
-                                    .map(data1 -> (Character) data1)
-                                    .filter(
-                                            characterData -> (characterData.getDocument().getTalkability() / total) >= percentage &&
-                                                    !characterData.getName().equals(event.getAuthor().getName())
-                                    ).toList();
+                            Constants.LOGGER.info("Random percentage threshold: " + percentage);
+                            
+                            List<Character> meetsCriteria = allCharacters.stream()
+                                    .filter(characterData -> (characterData.getDocument().getTalkability() / total) >= percentage)
+                                    .toList();
+                            Constants.LOGGER.info("Characters meeting criteria: " + 
+                                meetsCriteria.stream().map(Character::getName).toList());
 
-                            if (!meetsCriteria.isEmpty())
-                                roleplay.promptCharacterToRoleplay(meetsCriteria.get((int) (Math.random() * meetsCriteria.size())),
-                                        msg, true);
+                            if (!meetsCriteria.isEmpty()) {
+                                Character selectedCharacter = meetsCriteria.get((int) (Math.random() * meetsCriteria.size()));
+                                Constants.LOGGER.info("Selected character for response: " + selectedCharacter.getName());
+                                roleplay.promptCharacterToRoleplay(selectedCharacter, msg, true);
+                            } else {
+                                Constants.LOGGER.info("No characters met the criteria for random response");
+                            }
+                        } else {
+                            Constants.LOGGER.info("Random decision was not to respond");
                         }
                     }
                 }
