@@ -154,10 +154,24 @@ public class Listener {
                 
             if (roleplay.isMakingResponse())
                 return;
-            if (!roleplay.isRunningRoleplay())
-                return;
 
-            if (event.getChannel().getIdLong() == roleplay.getChannel().getIdLong() && roleplay.isRunningRoleplay()) {
+            // Check if this is a roleplay thread (either actively running or an old one after restart)
+            boolean isRoleplayThread = false;
+            if (roleplay.isRunningRoleplay() && roleplay.getChannel() != null && 
+                event.getChannel().getIdLong() == roleplay.getChannel().getIdLong()) {
+                isRoleplayThread = true;
+            } else if (event.getChannel().getType() == net.dv8tion.jda.api.entities.channel.ChannelType.GUILD_PUBLIC_THREAD ||
+                       event.getChannel().getType() == net.dv8tion.jda.api.entities.channel.ChannelType.GUILD_PRIVATE_THREAD) {
+                // Check if this is a potential roleplay thread from before bot restart
+                ThreadChannel threadChannel = (ThreadChannel) event.getChannel();
+                // If it's a thread and the bot isn't tracking it as active, try to restore it
+                if (!roleplay.isRunningRoleplay()) {
+                    roleplay.restoreRoleplayFromThread(threadChannel);
+                }
+                isRoleplayThread = true;
+            }
+
+            if (isRoleplayThread) {
                 Random random = new Random();
 
                 Character fromContent = roleplay.findRespondingCharacterFromContent(msg.getContentRaw());

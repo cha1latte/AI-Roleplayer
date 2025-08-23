@@ -1113,4 +1113,13 @@ public class Roleplay {
             case INSTRUCTION -> instructions.putIfAbsent(data.getName(), (Instruction) data);
         }
     }
+
+    public void restoreRoleplayFromThread(ThreadChannel threadChannel) {
+        // Restore roleplay state from an existing thread (e.g., after bot restart)
+        if (!runningRoleplay && threadChannel != null) {
+            this.historyMarker = threadChannel;
+            this.runningRoleplay = true;
+            Constants.LOGGER.info("Restored roleplay state from thread: " + threadChannel.getName() + " in guild: " + guild.getName());
+        }
+    }
 }
