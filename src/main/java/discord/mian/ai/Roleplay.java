@@ -540,7 +540,12 @@ public class Roleplay {
 
         // Check if this is the first message and character has a starting message
         String startingMessage = currentCharacter.getDocument().getStartingMessage();
+        Constants.LOGGER.info("Checking starting message - latestAssistantMessage: " + 
+            (latestAssistantMessage != null ? "exists" : "null") + 
+            ", startingMessage: " + (startingMessage != null ? "exists" : "null") + 
+            ", character: " + currentCharacter.getName());
         if (latestAssistantMessage == null && startingMessage != null && !startingMessage.trim().isEmpty()) {
+            Constants.LOGGER.info("Sending starting message for character: " + currentCharacter.getName());
             // Send the predefined starting message instead of generating
             String avatarLink = currentCharacter.getDocument().getAvatar();
             
