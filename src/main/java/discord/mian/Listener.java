@@ -140,7 +140,9 @@ public class Listener {
 
     @SubscribeEvent
     public void onMessageReceived(MessageReceivedEvent event) throws ExecutionException, InterruptedException {
+        Constants.LOGGER.info("Message received from user: " + event.getAuthor().getName() + " in channel: " + event.getChannel().getName());
         if (Constants.ALLOWED_USER_IDS.contains(event.getAuthor().getIdLong()) || Constants.PUBLIC) {
+            Constants.LOGGER.info("User is allowed to interact with bot");
             Message msg = event.getMessage();
 
             if (!msg.isFromGuild())
@@ -151,12 +153,22 @@ public class Listener {
                 return;
 
             Roleplay roleplay = AIBot.bot.getChat(event.getGuild());
-            if (roleplay.isMakingResponse())
+            Constants.LOGGER.info("Roleplay state - making response: " + roleplay.isMakingResponse() + 
+                ", running roleplay: " + roleplay.isRunningRoleplay() + 
+                ", current channel: " + event.getChannel().getIdLong() + 
+                ", roleplay channel: " + (roleplay.getChannel() != null ? roleplay.getChannel().getIdLong() : "null"));
+                
+            if (roleplay.isMakingResponse()) {
+                Constants.LOGGER.info("Roleplay is already making a response, skipping");
                 return;
-            if (!roleplay.isRunningRoleplay())
+            }
+            if (!roleplay.isRunningRoleplay()) {
+                Constants.LOGGER.info("Roleplay is not running, skipping");
                 return;
+            }
 
             if (event.getChannel().getIdLong() == roleplay.getChannel().getIdLong() && roleplay.isRunningRoleplay()) {
+                Constants.LOGGER.info("Message is in roleplay channel, processing...");
                 Random random = new Random();
 
                 Character fromContent = roleplay.findRespondingCharacterFromContent(msg.getContentRaw());
