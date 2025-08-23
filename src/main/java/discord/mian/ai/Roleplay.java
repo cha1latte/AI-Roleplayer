@@ -291,12 +291,9 @@ public class Roleplay {
     }
 
     private RestAction<ResponseInfo> generateResponse(Character character, Consumer<String> consumer) {
-        Constants.LOGGER.info("generateResponse called with aiProvider: " + aiProvider);
         if (aiProvider == AIProvider.GOOGLE_AI) {
-            Constants.LOGGER.info("Using Google AI response generation");
             return generateGoogleAIResponse(character, consumer);
         } else {
-            Constants.LOGGER.info("Using OpenRouter response generation");
             return generateOpenRouterResponse(character, consumer);
         }
     }
@@ -496,12 +493,7 @@ public class Roleplay {
     }
 
     public void promptCharacterToRoleplay(Character character, Message replyTo, boolean triggerAutoResponse) {
-        Constants.LOGGER.info("promptCharacterToRoleplay called with character: " + character.getName() + 
-            ", replyTo: " + (replyTo != null ? replyTo.getContentRaw() : "null") + 
-            ", triggerAutoResponse: " + triggerAutoResponse);
-            
         if (isRunningRoleplay()) {
-            Constants.LOGGER.info("Roleplay is running, processing character prompt");
             if (!characters.containsKey(character.getName())) {
                 Consumer<Throwable> onFail = t ->
                         Constants.LOGGER.error("Failed to add character into roleplay", t);

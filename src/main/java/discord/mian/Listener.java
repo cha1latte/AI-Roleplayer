@@ -140,9 +140,7 @@ public class Listener {
 
     @SubscribeEvent
     public void onMessageReceived(MessageReceivedEvent event) throws ExecutionException, InterruptedException {
-        Constants.LOGGER.info("Message received from user: " + event.getAuthor().getName() + " in channel: " + event.getChannel().getName());
         if (Constants.ALLOWED_USER_IDS.contains(event.getAuthor().getIdLong()) || Constants.PUBLIC) {
-            Constants.LOGGER.info("User is allowed to interact with bot");
             Message msg = event.getMessage();
 
             if (!msg.isFromGuild())
@@ -153,76 +151,47 @@ public class Listener {
                 return;
 
             Roleplay roleplay = AIBot.bot.getChat(event.getGuild());
-            Constants.LOGGER.info("Roleplay state - making response: " + roleplay.isMakingResponse() + 
-                ", running roleplay: " + roleplay.isRunningRoleplay() + 
-                ", current channel: " + event.getChannel().getIdLong() + 
-                ", roleplay channel: " + (roleplay.getChannel() != null ? roleplay.getChannel().getIdLong() : "null"));
                 
-            if (roleplay.isMakingResponse()) {
-                Constants.LOGGER.info("Roleplay is already making a response, skipping");
+            if (roleplay.isMakingResponse())
                 return;
-            }
-            if (!roleplay.isRunningRoleplay()) {
-                Constants.LOGGER.info("Roleplay is not running, skipping");
+            if (!roleplay.isRunningRoleplay())
                 return;
-            }
 
             if (event.getChannel().getIdLong() == roleplay.getChannel().getIdLong() && roleplay.isRunningRoleplay()) {
-                Constants.LOGGER.info("Message is in roleplay channel, processing...");
                 Random random = new Random();
 
-                Constants.LOGGER.info("Looking for character from content: '" + msg.getContentRaw() + "'");
                 Character fromContent = roleplay.findRespondingCharacterFromContent(msg.getContentRaw());
-                Constants.LOGGER.info("Character from content: " + (fromContent != null ? fromContent.getName() : "none"));
                 
                 if (fromContent != null && !fromContent.getName().equals(event.getAuthor().getName())) {
-                    Constants.LOGGER.info("Prompting character from content: " + fromContent.getName());
                     roleplay.promptCharacterToRoleplay(fromContent, msg, true);
                 } else {
-                    Constants.LOGGER.info("Looking for character from message mentions/replies");
                     Character data = roleplay.findRespondingCharacterFromMessage(msg);
-                    Constants.LOGGER.info("Character from message: " + (data != null ? data.getName() : "none"));
                     
                     if (data != null && !data.getName().equals(event.getAuthor().getName())) {
-                        Constants.LOGGER.info("Prompting character from message: " + data.getName());
                         roleplay.promptCharacterToRoleplay(data, msg, true);
                     } else if (!AIBot.bot.getServerData(event.getGuild()).getConfig()
                             .get("only_chat_on_mention", Boolean.class).getValue()) {
-                        Constants.LOGGER.info("No specific character found, checking random selection...");
 
-                        boolean shouldRandomlyRespond = random.nextBoolean();
-                        Constants.LOGGER.info("Random response decision: " + shouldRandomlyRespond);
-                        
-                        if (shouldRandomlyRespond) {
-                            List<Character> allCharacters = roleplay.getDatas(PromptType.CHARACTER).stream()
-                                    .map(data1 -> (Character) data1)
-                                    .filter(data1 -> !data1.getName().equals(event.getAuthor().getName()))
-                                    .toList();
-                            Constants.LOGGER.info("Available characters for random selection: " + 
-                                allCharacters.stream().map(Character::getName).toList());
+                        // Always respond instead of 50% chance
+                        List<Character> allCharacters = roleplay.getDatas(PromptType.CHARACTER).stream()
+                                .map(data1 -> (Character) data1)
+                                .filter(data1 -> !data1.getName().equals(event.getAuthor().getName()))
+                                .toList();
                                 
+                        if (!allCharacters.isEmpty()) {
                             final double total = allCharacters.stream()
                                     .mapToDouble(character -> character.getDocument().getTalkability()).sum();
-                            Constants.LOGGER.info("Total talkability: " + total);
 
                             double percentage = Math.random();
-                            Constants.LOGGER.info("Random percentage threshold: " + percentage);
                             
                             List<Character> meetsCriteria = allCharacters.stream()
                                     .filter(characterData -> (characterData.getDocument().getTalkability() / total) >= percentage)
                                     .toList();
-                            Constants.LOGGER.info("Characters meeting criteria: " + 
-                                meetsCriteria.stream().map(Character::getName).toList());
 
                             if (!meetsCriteria.isEmpty()) {
                                 Character selectedCharacter = meetsCriteria.get((int) (Math.random() * meetsCriteria.size()));
-                                Constants.LOGGER.info("Selected character for response: " + selectedCharacter.getName());
                                 roleplay.promptCharacterToRoleplay(selectedCharacter, msg, true);
-                            } else {
-                                Constants.LOGGER.info("No characters met the criteria for random response");
                             }
-                        } else {
-                            Constants.LOGGER.info("Random decision was not to respond");
                         }
                     }
                 }
