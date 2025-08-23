@@ -6,6 +6,7 @@ import io.github.sashirestela.openai.domain.chat.ChatMessage;
 import okhttp3.*;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -37,8 +38,13 @@ public class GoogleAIRequest {
 
     public GoogleAIResponse generate() throws IOException {
         String prompt = convertMessagesToPrompt();
+        discord.mian.Constants.LOGGER.info("Making Google AI request for model: " + model);
         
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(Duration.ofSeconds(30))
+            .readTimeout(Duration.ofSeconds(120))  // Google AI can take time to generate responses
+            .writeTimeout(Duration.ofSeconds(30))
+            .build();
         
         // Create request body for Google AI API using proper JSON building
         ObjectMapper mapper = new ObjectMapper();
@@ -54,6 +60,7 @@ public class GoogleAIRequest {
                 )
             );
             String requestBody = mapper.writeValueAsString(contentMap);
+            discord.mian.Constants.LOGGER.info("Request body prepared, making API call...");
             
             Request request = new Request.Builder()
                 .url("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + apiKey)
@@ -61,7 +68,9 @@ public class GoogleAIRequest {
                 .post(RequestBody.create(requestBody, MediaType.get("application/json; charset=utf-8")))
                 .build();
                 
+            discord.mian.Constants.LOGGER.info("Executing Google AI API request...");
             try (Response response = client.newCall(request).execute()) {
+            discord.mian.Constants.LOGGER.info("Received response from Google AI with status: " + response.code());
             if (!response.isSuccessful()) {
                 String errorBody = response.body() != null ? response.body().string() : "No error details";
                 discord.mian.Constants.LOGGER.error("Google AI API request failed. Status: " + response.code() + 
