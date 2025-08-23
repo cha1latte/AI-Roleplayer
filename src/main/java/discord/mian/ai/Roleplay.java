@@ -205,7 +205,7 @@ public class Roleplay {
             if (errorMsgCleanup == null) {
                 components.add(InteractionCreator.createPermanentButton(Button.danger("destroy", Emoji.fromFormatted("🗑")),
                         Interactions.getDestroyMessage()));
-                components.add(InteractionCreator.createPermanentButton(Button.success("edit", Emoji.fromFormatted("🪄")),
+                components.add(InteractionCreator.createPermanentButton(Button.primary("edit", Emoji.fromFormatted("✏️")),
                         Interactions.getEditMessage()));
             }
 
@@ -587,7 +587,7 @@ public class Roleplay {
                 latestAssistantMessage.delete().queue();
             else
                 latestAssistantMessage.editMessageComponents(ActionRow.of(Button.danger("destroy_button", Emoji.fromFormatted("🗑")),
-                                Button.success("edit_button", Emoji.fromFormatted("🪄"))))
+                                Button.primary("edit_button", Emoji.fromFormatted("✏️"))))
                         .queue(RestAction.getDefaultSuccess(),
                                 (t) -> {
                                 });
@@ -967,7 +967,7 @@ public class Roleplay {
         if (latestAssistantMessage != null) {
             latestAssistantMessage.editMessageComponents(
                             ActionRow.of(Button.danger("destroy_button", Emoji.fromFormatted("🗑")),
-                                    Button.success("edit_button", Emoji.fromFormatted("🪄"))))
+                                    Button.primary("edit_button", Emoji.fromFormatted("✏️"))))
                     .queue(RestAction.getDefaultSuccess(),
                             (t) ->
                                     Constants.LOGGER.warn("AI Response was unable to be stripped of its optional components", t));

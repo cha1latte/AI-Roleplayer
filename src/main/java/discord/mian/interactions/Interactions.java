@@ -677,7 +677,7 @@ public class Interactions {
                     }
 
                     replyCreatingPrompt(event, promptType);
-                }).withEmoji(Emoji.fromFormatted("🪄")));
+                }).withEmoji(Emoji.fromFormatted("✏️")));
 
             components.add(ActionRow.of(itemComponents));
         }
@@ -820,7 +820,7 @@ public class Interactions {
                                     .setPlaceholder("A very sussy roleplay")
                                     .build()
                     )).build()).queue();
-                }).withEmoji(Emoji.fromFormatted("🪄"))
+                }).withEmoji(Emoji.fromFormatted("✏️"))
                 .withStyle(ButtonStyle.PRIMARY).withDisabled(message.getChannelType().isThread()));
 
         roleplayComponents.add(InteractionCreator.createButton("Stop Roleplay", (event) ->
