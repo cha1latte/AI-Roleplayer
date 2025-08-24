@@ -514,10 +514,11 @@ public class Roleplay {
                         historyMarker.retrieveParentMessage().queue(parentMsg -> {
                             try {
                                 Container container = parentMsg.getComponentTree().getComponents().getFirst().asContainer();
-                                TextDisplay charactersDisplay = container.getComponents().stream().filter(component -> component.getUniqueId() == 152)
+                                var displayComponent = container.getComponents().stream().filter(component -> component.getUniqueId() == 152)
                                         .findFirst().orElse(null);
                                         
-                                if (charactersDisplay != null) {
+                                if (displayComponent != null) {
+                                    TextDisplay charactersDisplay = displayComponent.asTextDisplay();
                                     parentMsg.editMessageComponents(container.replace(ComponentReplacer.byId(152, charactersDisplay.withContent(
                                             charactersDisplay.getContent() + ", " + character.getName()
                                     )))).useComponentsV2().queue(success -> {
