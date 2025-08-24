@@ -74,6 +74,8 @@ public class AIBot {
                     Server server = servers.get(g);
                     if (server != null) {
                         server.cleanupNonPokemonContent();
+                        // Restore Pokemon defaults after cleanup
+                        server.restorePokemonDefaults();
                     }
                 } catch (Exception e) {
                     Constants.LOGGER.error("Failed to cleanup non-Pokemon content for guild: " + g.getName(), e);
@@ -81,7 +83,7 @@ public class AIBot {
             }
             pokemonCleanupDone = true;
             System.setProperty(CLEANUP_FLAG, "true");
-            Constants.LOGGER.info("Pokemon cleanup completed for all servers");
+            Constants.LOGGER.info("Pokemon cleanup and restoration completed for all servers");
         }
         return servers.get(guild);
     }

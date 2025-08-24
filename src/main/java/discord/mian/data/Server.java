@@ -7,6 +7,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.model.Updates;
 import discord.mian.Constants;
 import discord.mian.Util;
 import discord.mian.data.character.Character;
@@ -199,7 +200,10 @@ public class Server {
         try (MongoCursor<WorldDocument> cursor = Util.DATABASE.getCollection("prompt", WorldDocument.class)
                 .find(Filters.and(
                         Filters.eq("server", guild.getIdLong()),
-                        Filters.eq("type", "worlds"))).iterator()) {
+                        Filters.or(
+                                Filters.eq("type", "worlds"),
+                                Filters.eq("type", "personas")
+                        ))).iterator()) {
             while (cursor.hasNext()) {
                 WorldDocument document = cursor.next();
                 personaDatas.putIfAbsent(document.getName(), new World(document));
@@ -213,7 +217,10 @@ public class Server {
         try (MongoCursor<InstructionDocument> cursor = Util.DATABASE.getCollection("prompt", InstructionDocument.class)
                 .find(Filters.and(
                         Filters.eq("server", guild.getIdLong()),
-                        Filters.eq("type", "instructions"))).iterator()) {
+                        Filters.or(
+                                Filters.eq("type", "instructions"),
+                                Filters.eq("type", "system prompts")
+                        ))).iterator()) {
             while (cursor.hasNext()) {
                 InstructionDocument document = cursor.next();
                 systemPromptDatas.putIfAbsent(document.getName(), new Instruction(document));
@@ -270,6 +277,60 @@ public class Server {
         data.updateDocument(document -> document.setPrompt(prompt));
 
         personaDatas.putIfAbsent(name, data);
+    }
+
+    // Method to restore Pokemon content from defaults
+    public void restorePokemonDefaults() {
+        long serverId = guild.getIdLong();
+        Constants.LOGGER.info("Restoring Pokemon defaults for server: " + guild.getName());
+        
+        try {
+            // Create Pokemon system prompt if missing
+            if (systemPromptDatas.isEmpty() || !systemPromptDatas.containsKey("Pokemon Adventure")) {
+                File pokemonInstruction = new File("data/defaults/instructions/Pokemon Adventure.txt");
+                if (pokemonInstruction.exists()) {
+                    String prompt = Files.readString(pokemonInstruction.toPath());
+                    createSystemPrompt("Pokemon Adventure", prompt);
+                    Constants.LOGGER.info("Restored Pokemon Adventure system prompt");
+                }
+            }
+            
+            // Create Pokemon persona if missing  
+            if (personaDatas.isEmpty() || !personaDatas.containsKey("Pokemon Trainer")) {
+                File pokemonWorld = new File("data/defaults/worlds/Pokemon Trainer.txt");
+                if (pokemonWorld.exists()) {
+                    String prompt = Files.readString(pokemonWorld.toPath());
+                    createPersona("Pokemon Trainer", prompt);
+                    Constants.LOGGER.info("Restored Pokemon Trainer persona");
+                }
+            }
+            
+            // Create Pokemon character if missing
+            if (characterDatas.isEmpty() || !characterDatas.containsKey("Pokemon Adventure")) {
+                File pokemonChar = new File("data/defaults/characters/pokemon-adventure.json");
+                if (pokemonChar.exists()) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    JsonNode characterNode = mapper.readTree(pokemonChar);
+                    createCharacter(
+                            characterNode.get("name").asText(),
+                            characterNode.get("prompt").asText(),
+                            characterNode.get("talkability").asDouble()
+                    );
+                    characterDatas.get(characterNode.get("name").asText()).updateDocument(
+                            document -> document.setAvatar(characterNode.get("avatar").asText())
+                    );
+                    Constants.LOGGER.info("Restored Pokemon Adventure character");
+                }
+            }
+            
+            // Clear caches to reload
+            systemPromptDatas.clear();
+            personaDatas.clear();
+            characterDatas.clear();
+            
+        } catch (Exception e) {
+            Constants.LOGGER.error("Error restoring Pokemon defaults", e);
+        }
     }
 
     // Temporary method to clean up non-Pokemon content from database
@@ -329,6 +390,131 @@ public class Server {
         characterDatas.clear();
         
         Constants.LOGGER.info("Pokemon cleanup completed for " + guild.getName() + " - removed " + deletedCount + " items");
+    }
+
+    // Method to restore Pokemon content by fixing database inconsistencies and reloading defaults
+    public void restorePokemonContent() {
+        long serverId = guild.getIdLong();
+        Constants.LOGGER.info("Starting Pokemon content restoration for server: " + guild.getName());
+        
+        try {
+            // Fix type inconsistencies in the database
+            // Update "system prompts" to "instructions" for system prompts
+            int updatedInstructions = Util.DATABASE.getCollection("prompt")
+                    .updateMany(
+                            Filters.and(
+                                    Filters.eq("server", serverId),
+                                    Filters.eq("type", "system prompts")
+                            ),
+                            Updates.set("type", "instructions")
+                    ).getModifiedCount();
+            
+            // Update "personas" to "worlds" for world prompts  
+            int updatedWorlds = Util.DATABASE.getCollection("prompt")
+                    .updateMany(
+                            Filters.and(
+                                    Filters.eq("server", serverId),
+                                    Filters.eq("type", "personas")
+                            ),
+                            Updates.set("type", "worlds")
+                    ).getModifiedCount();
+            
+            Constants.LOGGER.info("Fixed type inconsistencies - Instructions: " + updatedInstructions + ", Worlds: " + updatedWorlds);
+            
+            // Check if Pokemon content exists in database
+            long pokemonInstructions = Util.DATABASE.getCollection("prompt")
+                    .countDocuments(Filters.and(
+                            Filters.eq("server", serverId),
+                            Filters.eq("type", "instructions"),
+                            Filters.regex("name", "(?i)pokemon")
+                    ));
+            
+            long pokemonWorlds = Util.DATABASE.getCollection("prompt")
+                    .countDocuments(Filters.and(
+                            Filters.eq("server", serverId),
+                            Filters.eq("type", "worlds"),
+                            Filters.regex("name", "(?i)pokemon")
+                    ));
+            
+            long pokemonCharacters = Util.DATABASE.getCollection("prompt")
+                    .countDocuments(Filters.and(
+                            Filters.eq("server", serverId),
+                            Filters.eq("type", "characters"),
+                            Filters.regex("name", "(?i)pokemon")
+                    ));
+            
+            Constants.LOGGER.info("Found Pokemon content - Instructions: " + pokemonInstructions + 
+                                ", Worlds: " + pokemonWorlds + ", Characters: " + pokemonCharacters);
+            
+            // If Pokemon content is missing, recreate it from defaults
+            boolean restored = false;
+            
+            if (pokemonInstructions == 0) {
+                try {
+                    File instructionFile = new File(Util.getDefaultsFor(PromptType.INSTRUCTION), "Pokemon Adventure.txt");
+                    if (instructionFile.exists()) {
+                        String prompt = Files.readString(instructionFile.toPath());
+                        createSystemPrompt("Pokemon Adventure", prompt);
+                        Constants.LOGGER.info("Restored Pokemon Adventure system prompt from defaults");
+                        restored = true;
+                    }
+                } catch (IOException e) {
+                    Constants.LOGGER.error("Failed to restore Pokemon Adventure instruction", e);
+                }
+            }
+            
+            if (pokemonWorlds == 0) {
+                try {
+                    File worldFile = new File(Util.getDefaultsFor(PromptType.WORLD), "Pokemon Trainer.txt");
+                    if (worldFile.exists()) {
+                        String prompt = Files.readString(worldFile.toPath());
+                        createPersona("Pokemon Trainer", prompt);
+                        Constants.LOGGER.info("Restored Pokemon Trainer persona from defaults");
+                        restored = true;
+                    }
+                } catch (IOException e) {
+                    Constants.LOGGER.error("Failed to restore Pokemon Trainer world", e);
+                }
+            }
+            
+            if (pokemonCharacters == 0) {
+                try {
+                    File characterFile = new File(Util.getDefaultsFor(PromptType.CHARACTER), "pokemon-adventure.json");
+                    if (characterFile.exists()) {
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode characterNode = mapper.readTree(characterFile);
+                        createCharacter(
+                                characterNode.get("name").asText(),
+                                characterNode.get("prompt").asText(),
+                                characterNode.get("talkability").asDouble()
+                        );
+                        Character character = characterDatas.get(characterNode.get("name").asText());
+                        if (character != null) {
+                            character.updateDocument(document -> 
+                                document.setAvatar(characterNode.get("avatar").asText())
+                            );
+                        }
+                        Constants.LOGGER.info("Restored Pokemon Adventure character from defaults");
+                        restored = true;
+                    }
+                } catch (IOException e) {
+                    Constants.LOGGER.error("Failed to restore Pokemon Adventure character", e);
+                }
+            }
+            
+            // Clear cached data to force reload
+            if (restored || updatedInstructions > 0 || updatedWorlds > 0) {
+                systemPromptDatas.clear();
+                personaDatas.clear();
+                characterDatas.clear();
+                Constants.LOGGER.info("Cleared cached data to force reload");
+            }
+            
+            Constants.LOGGER.info("Pokemon content restoration completed for " + guild.getName());
+            
+        } catch (Exception e) {
+            Constants.LOGGER.error("Error during Pokemon content restoration", e);
+        }
     }
 
 }
