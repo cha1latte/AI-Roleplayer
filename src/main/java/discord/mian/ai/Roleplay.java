@@ -1121,14 +1121,33 @@ public class Roleplay {
             this.runningRoleplay = true;
             Constants.LOGGER.info("Restored roleplay state from thread: " + threadChannel.getName() + " in guild: " + guild.getName());
             
-            // Log character availability
+            // Restore all available characters, worlds, and instructions from server data
+            Constants.LOGGER.info("Restoring characters, worlds, and instructions from server data...");
+            
+            // Add all available characters
+            server.getCharacterDatas().values().forEach(characterData -> {
+                Character character = (Character) characterData;
+                characters.putIfAbsent(character.getName(), character);
+                Constants.LOGGER.info("Restored character: " + character.getName() + " (talkability: " + character.getDocument().getTalkability() + ")");
+            });
+            
+            // Add all available worlds
+            server.getWorldDatas().values().forEach(worldData -> {
+                worldLore.putIfAbsent(worldData.getName(), (World) worldData);
+                Constants.LOGGER.info("Restored world: " + worldData.getName());
+            });
+            
+            // Add all available instructions
+            server.getInstructionDatas().values().forEach(instructionData -> {
+                instructions.putIfAbsent(instructionData.getName(), (Instruction) instructionData);
+                Constants.LOGGER.info("Restored instruction: " + instructionData.getName());
+            });
+            
+            // Log final character availability
             List<Character> availableCharacters = getDatas(PromptType.CHARACTER).stream()
                     .map(data -> (Character) data)
                     .toList();
-            Constants.LOGGER.info("Available characters after restoration: " + availableCharacters.size());
-            for (Character character : availableCharacters) {
-                Constants.LOGGER.info("Character: " + character.getName() + " (talkability: " + character.getDocument().getTalkability() + ")");
-            }
+            Constants.LOGGER.info("Total available characters after restoration: " + availableCharacters.size());
         }
     }
 }
