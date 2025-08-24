@@ -284,7 +284,7 @@ public class Interactions {
                 } else {
                     switch (promptType) {
                         case CHARACTER -> server.createCharacter(name, prompt, talkability, avatar, startingMessage);
-                        case WORLD -> server.createWorld(name, prompt);
+                        case WORLD -> server.createPersona(name, prompt);
                         case INSTRUCTION -> server.createInstruction(name, prompt);
                     }
                 }
@@ -706,8 +706,8 @@ public class Interactions {
         ArrayList<Button> roleplayComponents = new ArrayList<>();
 
         roleplayComponents.add(InteractionCreator.createButton("Create Roleplay", (event) -> {
-                    if (server.getInstructionDatas().isEmpty() || server.getCharacterDatas().isEmpty() || server.getWorldDatas().isEmpty()) {
-                        event.reply("Must at least have one instruction, character and world created in the bot in order to start a roleplay!").setEphemeral(true).queue();
+                    if (server.getInstructionDatas().isEmpty() || server.getCharacterDatas().isEmpty() || server.getPersonaDatas().isEmpty()) {
+                        event.reply("Must at least have one instruction, character and persona created in the bot in order to start a roleplay!").setEphemeral(true).queue();
                         return;
                     }
 
@@ -789,7 +789,7 @@ public class Interactions {
                                                                 buttonEvent,
                                                                 name,
                                                                 datas.get(PromptType.INSTRUCTION).stream().map(string -> server.getInstructionDatas().get(string)).toList(),
-                                                                datas.get(PromptType.WORLD).stream().map(string -> server.getWorldDatas().get(string)).toList(),
+                                                                datas.get(PromptType.WORLD).stream().map(string -> server.getPersonaDatas().get(string)).toList(),
                                                                 datas.get(PromptType.CHARACTER).stream().map(string -> server.getCharacterDatas().get(string)).toList(),
                                                                 hook ->
                                                                         roleplay.getDatas(PromptType.CHARACTER).forEach((chrData) ->
@@ -934,7 +934,7 @@ public class Interactions {
                     event.deferEdit().queue();
                     createPromptViewer(event.getHook(), PromptType.INSTRUCTION, null, 0);
                 }).withEmoji(Emoji.fromFormatted("📋")),
-                InteractionCreator.createPermanentButton(Button.secondary("view_worlds", "View Personas"), (event) -> {
+                InteractionCreator.createPermanentButton(Button.secondary("view_personas", "View Personas"), (event) -> {
                     event.deferEdit().queue();
                     createPromptViewer(event.getHook(), PromptType.WORLD, null, 0);
                 }).withEmoji(Emoji.fromFormatted("🌍")),
@@ -1102,8 +1102,8 @@ public class Interactions {
         componentList.add(TextDisplay.of("3. Run /menu, go to Server Configuration, and set your API keys to the imgbb_key and openrouter_key fields. Be sure to not add any additional spaces that could mess up the key."));
         componentList.add(TextDisplay.of("4. You are done setting up the bot! You may press \"Start Roleplay\" in the main dashboard to get started with a new roleplay :sunglasses:"));
         componentList.add(Separator.createDivider(Separator.Spacing.SMALL));
-        componentList.add(TextDisplay.of("## How can I create custom characters, instructions, and world prompts? 🌍🧝🤖"));
-        componentList.add(TextDisplay.of("1. Run /menu and choose from Characters | Instructions | Worlds"));
+        componentList.add(TextDisplay.of("## How can I create custom characters, instructions, and persona prompts? 🌍🧝🤖"));
+        componentList.add(TextDisplay.of("1. Run /menu and choose from Characters | Instructions | Personas"));
         componentList.add(TextDisplay.of("2. If you want to edit a prompt, select \"Edit Prompt\" and choose a prompt. Otherwise click \"Create Prompt\""));
         componentList.add(TextDisplay.of("3. Depending on what you selected, you can either choose a name, edit the description, and etc. Go wild here!"));
         componentList.add(Separator.createDivider(Separator.Spacing.SMALL));

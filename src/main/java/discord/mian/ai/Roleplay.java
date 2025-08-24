@@ -85,7 +85,7 @@ public class Roleplay {
 
     // make possible to swipe messages
     private final HashMap<String, Instruction> instructions;
-    private final HashMap<String, World> worldLore;
+    private final HashMap<String, World> personaLore;
     private final HashMap<String, Character> characters;
     private Character currentCharacter;
     private boolean runningRoleplay = false;
@@ -113,7 +113,7 @@ public class Roleplay {
         this.guild = guild;
 
         instructions = new HashMap<>();
-        worldLore = new HashMap<>();
+        personaLore = new HashMap<>();
         characters = new HashMap<>();
     }
 
@@ -816,8 +816,8 @@ public class Roleplay {
             messages.add(ChatMessage.SystemMessage.of(instructionsMessage.toString(), "Instructions"));
 
             StringBuilder combinedLore = new StringBuilder();
-            combinedLore.append("The following is lore and information about the world that this roleplay takes place in!");
-            for (World world : worldLore.values()) {
+            combinedLore.append("The following is lore and information about the persona that this roleplay takes place in!");
+            for (World world : personaLore.values()) {
                 combinedLore.append(world.getChatMessage(character).getContent()).append("\n");
             }
             messages.add(ChatMessage.SystemMessage.of(combinedLore.toString(), "Lore"));
@@ -870,14 +870,14 @@ public class Roleplay {
     public void startRoleplay(IReplyCallback event,
                               String rpName,
                               List<Instruction> instructionList,
-                              List<World> worlds,
+                              List<World> personas,
                               List<Character> characterList,
                               Consumer<Webhook> onSuccess
     ) throws ExecutionException, InterruptedException, IOException {
         if (instructionList.size() <= 0)
             throw new RuntimeException("Need at least one set of instructions!");
-        if (worlds.size() <= 0)
-            throw new RuntimeException("Need at least one set of world lore!");
+        if (personas.size() <= 0)
+            throw new RuntimeException("Need at least one set of persona lore!");
 
         event.deferReply().queue(hook -> {
             List<ContainerChildComponent> components = new ArrayList<>();
@@ -894,7 +894,7 @@ public class Roleplay {
             Function<PromptType, List<? extends Data>> getDatas = (promptType) ->
                     switch (promptType) {
                         case INSTRUCTION -> instructionList;
-                        case WORLD -> worlds;
+                        case WORLD -> personas;
                         case CHARACTER -> characterList;
                     };
 
@@ -948,7 +948,7 @@ public class Roleplay {
 
             this.characters.clear();
             this.instructions.clear();
-            this.worldLore.clear();
+            this.personaLore.clear();
             this.queuedResponses.clear();
 
             AtomicInteger uniqueId = new AtomicInteger(150);
@@ -1055,7 +1055,7 @@ public class Roleplay {
         currentSwipe = 0;
         characters.clear();
         instructions.clear();
-        worldLore.clear();
+        personaLore.clear();
         queuedResponses.clear();
     }
 
@@ -1116,8 +1116,8 @@ public class Roleplay {
         return aiProvider;
     }
 
-    private HashMap<String, World> getWorlds() {
-        return worldLore;
+    private HashMap<String, World> getPersonas() {
+        return personaLore;
     }
 
     private HashMap<String, Instruction> getInstructions() {
@@ -1131,7 +1131,7 @@ public class Roleplay {
     public List<? extends Data> getDatas(PromptType promptType) {
         return switch (promptType) {
             case CHARACTER -> getCharacters().values().stream().toList();
-            case WORLD -> getWorlds().values().stream().toList();
+            case WORLD -> getPersonas().values().stream().toList();
             case INSTRUCTION -> getInstructions().values().stream().toList();
         };
     }
@@ -1164,7 +1164,7 @@ public class Roleplay {
                 characters.putIfAbsent(data.getName(), (Character) data);
                 currentCharacter = (Character) data;
             }
-            case WORLD -> worldLore.putIfAbsent(data.getName(), (World) data);
+            case WORLD -> personaLore.putIfAbsent(data.getName(), (World) data);
             case INSTRUCTION -> instructions.putIfAbsent(data.getName(), (Instruction) data);
         }
     }
@@ -1176,8 +1176,8 @@ public class Roleplay {
             this.runningRoleplay = true;
             Constants.LOGGER.info("Restored roleplay state from thread: " + threadChannel.getName() + " in guild: " + guild.getName());
             
-            // Restore all available characters, worlds, and instructions from server data
-            Constants.LOGGER.info("Restoring characters, worlds, and instructions from server data...");
+            // Restore all available characters, personas, and instructions from server data
+            Constants.LOGGER.info("Restoring characters, personas, and instructions from server data...");
             
             // Add all available characters
             server.getCharacterDatas().values().forEach(characterData -> {
@@ -1186,10 +1186,10 @@ public class Roleplay {
                 Constants.LOGGER.info("Restored character: " + character.getName() + " (talkability: " + character.getDocument().getTalkability() + ")");
             });
             
-            // Add all available worlds
-            server.getWorldDatas().values().forEach(worldData -> {
-                worldLore.putIfAbsent(worldData.getName(), (World) worldData);
-                Constants.LOGGER.info("Restored world: " + worldData.getName());
+            // Add all available personas
+            server.getPersonaDatas().values().forEach(personaData -> {
+                personaLore.putIfAbsent(personaData.getName(), (World) personaData);
+                Constants.LOGGER.info("Restored persona: " + personaData.getName());
             });
             
             // Add all available instructions

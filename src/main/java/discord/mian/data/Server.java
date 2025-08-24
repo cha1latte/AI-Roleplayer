@@ -29,14 +29,14 @@ import java.util.function.Consumer;
 public class Server {
     private final HashMap<String, Character> characterDatas;
     private final HashMap<String, Instruction> instructionDatas;
-    private final HashMap<String, World> worldDatas;
+    private final HashMap<String, World> personaDatas;
     private final Guild guild;
 
     public Server(Guild guild) {
         this.guild = guild;
         this.characterDatas = new HashMap<>();
         this.instructionDatas = new HashMap<>();
-        this.worldDatas = new HashMap<>();
+        this.personaDatas = new HashMap<>();
 
         saveConfig(generateConfig(getConfig())); // generates the config and missing values if they do not exist
     }
@@ -81,7 +81,7 @@ public class Server {
                             if (promptType == PromptType.INSTRUCTION)
                                 createInstruction(name, prompt);
                             else
-                                createWorld(name, prompt);
+                                createPersona(name, prompt);
                         }
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -183,22 +183,22 @@ public class Server {
         return switch (promptType) {
             case INSTRUCTION -> getInstructionDatas();
             case CHARACTER -> getCharacterDatas();
-            case WORLD -> getWorldDatas();
+            case WORLD -> getPersonaDatas();
         };
     }
 
-    public HashMap<String, World> getWorldDatas() {
+    public HashMap<String, World> getPersonaDatas() {
         try (MongoCursor<WorldDocument> cursor = Util.DATABASE.getCollection("prompt", WorldDocument.class)
                 .find(Filters.and(
                         Filters.eq("server", guild.getIdLong()),
                         Filters.eq("type", PromptType.WORLD.displayName.toLowerCase()))).iterator()) {
             while (cursor.hasNext()) {
                 WorldDocument document = cursor.next();
-                worldDatas.putIfAbsent(document.getName(), new World(document));
+                personaDatas.putIfAbsent(document.getName(), new World(document));
             }
         }
 
-        return worldDatas;
+        return personaDatas;
     }
 
     public HashMap<String, Instruction> getInstructionDatas() {
@@ -257,11 +257,11 @@ public class Server {
         instructionDatas.putIfAbsent(name, data);
     }
 
-    public void createWorld(String name, String prompt) throws MongoException {
+    public void createPersona(String name, String prompt) throws MongoException {
         World data = new World(new WorldDocument(name, guild.getIdLong()));
         data.updateDocument(document -> document.setPrompt(prompt));
 
-        worldDatas.putIfAbsent(name, data);
+        personaDatas.putIfAbsent(name, data);
     }
 
 }

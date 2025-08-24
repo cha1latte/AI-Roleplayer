@@ -31,10 +31,10 @@ What's OpenRouter?
 - OpenRouter is a middle-man website that lets providers host a multitude of AI models on the site. This allows you, the user, to swap whatever AI model you are using to another easily if you do not like the one you are on.
 - If you are planning on not paying, you get 50 free requests daily for free models on OpenRouter. If you have put at least \$10 at any time in OpenRouter, that limit increases to 1000 free requests daily (even if you no longer have $10).
 
-What are the different prompt types? Character, instruction, world..
+What are the different prompt types? Character, instruction, persona..
 - Character are definitions you define for the bot to play. The bot will use this definition to simulate a character when it roleplays
 - Instructions dictate the style of the roleplay and how the bot *should* roleplay. If you want to make it a discord-like chat or novel like, you can tell the bot to do that!
-- World dictates the environment and scenario for what the roleplay takes place in. It adds context to the roleplay for the bot to use.
+- Persona dictates the environment and scenario for what the roleplay takes place in. It adds context to the roleplay for the bot to use.
 
 What makes this different from Shapes.Inc?
 - Honestly if you are already satisified with Shapes.Inc, then don't bother with this, otherwise continue on :D
