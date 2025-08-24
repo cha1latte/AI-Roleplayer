@@ -1148,6 +1148,57 @@ public class Roleplay {
                     .map(data -> (Character) data)
                     .toList();
             Constants.LOGGER.info("Total available characters after restoration: " + availableCharacters.size());
+            
+            // Restore webhook for the thread
+            Constants.LOGGER.info("Restoring webhook for thread...");
+            restoreWebhookForThread(threadChannel);
         }
+    }
+    
+    private void restoreWebhookForThread(ThreadChannel threadChannel) {
+        // Get the parent channel and look for existing webhook or create one
+        threadChannel.getParentChannel().asTextChannel().retrieveWebhooks().queue(webhooks -> {
+            webhooks.stream()
+                    .filter(webhook -> webhook.getName().equals(AIBot.bot.getJDA().getSelfUser().getName()))
+                    .findFirst()
+                    .ifPresentOrElse(
+                            existingWebhook -> {
+                                this.webhook = existingWebhook;
+                                Constants.LOGGER.info("Restored existing webhook: " + existingWebhook.getName());
+                            },
+                            () -> {
+                                Constants.LOGGER.info("No existing webhook found, creating new one...");
+                                WebhookAction action = threadChannel.getParentChannel().asTextChannel()
+                                        .createWebhook(AIBot.bot.getJDA().getSelfUser().getName());
+                                if (AIBot.bot.getJDA().getSelfUser().getAvatar() != null) {
+                                    try {
+                                        InputStream inputStream = AIBot.bot.getJDA().getSelfUser().getAvatar().download().get();
+                                        action.setAvatar(Icon.from(inputStream)).queue(createdWebhook -> {
+                                            this.webhook = createdWebhook;
+                                            Constants.LOGGER.info("Created new webhook with avatar: " + createdWebhook.getName());
+                                        }, error -> {
+                                            Constants.LOGGER.error("Failed to create webhook with avatar", error);
+                                        });
+                                    } catch (Exception e) {
+                                        action.queue(createdWebhook -> {
+                                            this.webhook = createdWebhook;
+                                            Constants.LOGGER.info("Created new webhook without avatar: " + createdWebhook.getName());
+                                        }, error -> {
+                                            Constants.LOGGER.error("Failed to create webhook", error);
+                                        });
+                                    }
+                                } else {
+                                    action.queue(createdWebhook -> {
+                                        this.webhook = createdWebhook;
+                                        Constants.LOGGER.info("Created new webhook: " + createdWebhook.getName());
+                                    }, error -> {
+                                        Constants.LOGGER.error("Failed to create webhook", error);
+                                    });
+                                }
+                            }
+                    );
+        }, error -> {
+            Constants.LOGGER.error("Failed to retrieve webhooks for thread restoration", error);
+        });
     }
 }
