@@ -88,14 +88,27 @@ public class AIBot {
             Constants.LOGGER.info("Pokemon cleanup and restoration completed for all servers");
         }
         
-        // Ensure Pokemon content is restored once per server
+        // Always ensure Pokemon content exists for each server access
         Server server = servers.get(guild);
-        if (server != null && !pokemonRestoredFlags.getOrDefault(guild, false)) {
+        if (server != null) {
             try {
-                server.restorePokemonContent();
-                pokemonRestoredFlags.put(guild, true);
+                // Check if Pokemon system prompt exists for this server
+                long pokemonInstructions = Util.DATABASE.getCollection("prompt")
+                        .countDocuments(Filters.and(
+                                Filters.eq("server", guild.getIdLong()),
+                                Filters.or(
+                                        Filters.eq("type", "instructions"),
+                                        Filters.eq("type", "system prompts")
+                                ),
+                                Filters.regex("name", "(?i)pokemon.*adventure")
+                        ));
+                
+                if (pokemonInstructions == 0) {
+                    Constants.LOGGER.info("Pokemon system prompt missing for " + guild.getName() + ", forcing restoration...");
+                    server.restorePokemonContent();
+                }
             } catch (Exception e) {
-                Constants.LOGGER.error("Failed to restore Pokemon content for guild: " + guild.getName(), e);
+                Constants.LOGGER.error("Failed to check/restore Pokemon content for guild: " + guild.getName(), e);
             }
         }
         
