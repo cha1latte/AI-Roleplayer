@@ -200,37 +200,60 @@ public class Listener {
                 Random random = new Random();
 
                 Character fromContent = roleplay.findRespondingCharacterFromContent(msg.getContentRaw());
+                Constants.LOGGER.info("findRespondingCharacterFromContent result: " + (fromContent != null ? fromContent.getName() : "null"));
                 
                 if (fromContent != null && !fromContent.getName().equals(event.getAuthor().getName())) {
+                    Constants.LOGGER.info("Found character from content: " + fromContent.getName() + ", prompting to roleplay");
                     roleplay.promptCharacterToRoleplay(fromContent, msg, true);
                 } else {
+                    Constants.LOGGER.info("No character from content, checking findRespondingCharacterFromMessage");
                     Character data = roleplay.findRespondingCharacterFromMessage(msg);
+                    Constants.LOGGER.info("findRespondingCharacterFromMessage result: " + (data != null ? data.getName() : "null"));
                     
                     if (data != null && !data.getName().equals(event.getAuthor().getName())) {
+                        Constants.LOGGER.info("Found character from message: " + data.getName() + ", prompting to roleplay");
                         roleplay.promptCharacterToRoleplay(data, msg, true);
-                    } else if (!AIBot.bot.getServerData(event.getGuild()).getConfig()
-                            .get("only_chat_on_mention", Boolean.class).getValue()) {
-
-                        // Always respond instead of 50% chance
-                        List<Character> allCharacters = roleplay.getDatas(PromptType.CHARACTER).stream()
-                                .map(data1 -> (Character) data1)
-                                .filter(data1 -> !data1.getName().equals(event.getAuthor().getName()))
-                                .toList();
-                                
-                        if (!allCharacters.isEmpty()) {
-                            final double total = allCharacters.stream()
-                                    .mapToDouble(character -> character.getDocument().getTalkability()).sum();
-
-                            double percentage = Math.random();
-                            
-                            List<Character> meetsCriteria = allCharacters.stream()
-                                    .filter(characterData -> (characterData.getDocument().getTalkability() / total) >= percentage)
+                    } else {
+                        boolean onlyMention = AIBot.bot.getServerData(event.getGuild()).getConfig()
+                                .get("only_chat_on_mention", Boolean.class).getValue();
+                        Constants.LOGGER.info("No specific character found, only_chat_on_mention: " + onlyMention);
+                        
+                        if (!onlyMention) {
+                            Constants.LOGGER.info("Getting all characters for general response");
+                            // Always respond instead of 50% chance
+                            List<Character> allCharacters = roleplay.getDatas(PromptType.CHARACTER).stream()
+                                    .map(data1 -> (Character) data1)
+                                    .filter(data1 -> !data1.getName().equals(event.getAuthor().getName()))
                                     .toList();
+                            
+                            Constants.LOGGER.info("Found " + allCharacters.size() + " available characters");
+                            
+                            if (!allCharacters.isEmpty()) {
+                                final double total = allCharacters.stream()
+                                        .mapToDouble(character -> character.getDocument().getTalkability()).sum();
+                                Constants.LOGGER.info("Total talkability: " + total);
 
-                            if (!meetsCriteria.isEmpty()) {
-                                Character selectedCharacter = meetsCriteria.get((int) (Math.random() * meetsCriteria.size()));
-                                roleplay.promptCharacterToRoleplay(selectedCharacter, msg, true);
+                                double percentage = Math.random();
+                                Constants.LOGGER.info("Random percentage for character selection: " + percentage);
+                                
+                                List<Character> meetsCriteria = allCharacters.stream()
+                                        .filter(characterData -> (characterData.getDocument().getTalkability() / total) >= percentage)
+                                        .toList();
+                                
+                                Constants.LOGGER.info("Characters meeting criteria: " + meetsCriteria.size());
+
+                                if (!meetsCriteria.isEmpty()) {
+                                    Character selectedCharacter = meetsCriteria.get((int) (Math.random() * meetsCriteria.size()));
+                                    Constants.LOGGER.info("Selected character: " + selectedCharacter.getName() + ", calling promptCharacterToRoleplay");
+                                    roleplay.promptCharacterToRoleplay(selectedCharacter, msg, true);
+                                } else {
+                                    Constants.LOGGER.info("No characters met criteria for response");
+                                }
+                            } else {
+                                Constants.LOGGER.info("No characters available for response");
                             }
+                        } else {
+                            Constants.LOGGER.info("only_chat_on_mention is true, not responding to general message");
                         }
                     }
                 }

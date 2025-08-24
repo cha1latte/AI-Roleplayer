@@ -1120,6 +1120,15 @@ public class Roleplay {
             this.historyMarker = threadChannel;
             this.runningRoleplay = true;
             Constants.LOGGER.info("Restored roleplay state from thread: " + threadChannel.getName() + " in guild: " + guild.getName());
+            
+            // Log character availability
+            List<Character> availableCharacters = getDatas(PromptType.CHARACTER).stream()
+                    .map(data -> (Character) data)
+                    .toList();
+            Constants.LOGGER.info("Available characters after restoration: " + availableCharacters.size());
+            for (Character character : availableCharacters) {
+                Constants.LOGGER.info("Character: " + character.getName() + " (talkability: " + character.getDocument().getTalkability() + ")");
+            }
         }
     }
 }
