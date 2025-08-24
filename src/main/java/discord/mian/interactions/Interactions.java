@@ -769,7 +769,7 @@ public class Interactions {
                                         }
                                     });
                                     accept(nextInt);
-                                }).setMaxValues(promptType == PromptType.WORLD ? 1 : 25).setPlaceholder(promptType == PromptType.WORLD ? "Select Persona" : "Add/Remove Prompts"));
+                                }).setRequiredRange(0, promptType == PromptType.WORLD ? 1 : 25).setPlaceholder(promptType == PromptType.WORLD ? "Select Persona" : "Add/Remove Prompts"));
 
                                 selects.add(
                                         InteractionCreator.createStringMenu(onSelect ->
@@ -787,6 +787,10 @@ public class Interactions {
                                             selects, null, 90L, InteractionCreator.createButton(Emoji.fromFormatted("✅"), buttonEvent -> {
                                                 if (datas.get(promptType).isEmpty() && promptType == PromptType.CHARACTER) {
                                                     buttonEvent.reply("Need at least one set of " + display + "!").setEphemeral(true).queue();
+                                                    return;
+                                                }
+                                                if (promptType == PromptType.WORLD && datas.get(promptType).size() > 1) {
+                                                    buttonEvent.reply("Only one persona can be selected per roleplay!").setEphemeral(true).queue();
                                                     return;
                                                 }
                                                 if (nextInt + 1 >= PromptType.values().length) {
