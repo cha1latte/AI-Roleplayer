@@ -289,7 +289,7 @@ public class Server {
                     }
                     if (!isPokemon) {
                         Util.DATABASE.getCollection("prompt").deleteOne(
-                                Filters.eq("_id", document.getId())
+                                Filters.eq("_id", document.getName())
                         );
                         Constants.LOGGER.info("Removed non-Pokemon system prompt: " + document.getName());
                     }
@@ -311,7 +311,7 @@ public class Server {
                     }
                     if (!isPokemon) {
                         Util.DATABASE.getCollection("prompt").deleteOne(
-                                Filters.eq("_id", document.getId())
+                                Filters.eq("_id", document.getName())
                         );
                         Constants.LOGGER.info("Removed non-Pokemon persona: " + document.getName());
                     }
@@ -333,7 +333,7 @@ public class Server {
                     }
                     if (!isPokemon) {
                         Util.DATABASE.getCollection("prompt").deleteOne(
-                                Filters.eq("_id", document.getId())
+                                Filters.eq("_id", document.getName())
                         );
                         Constants.LOGGER.info("Removed non-Pokemon character: " + document.getName());
                     }

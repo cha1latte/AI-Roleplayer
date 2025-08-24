@@ -15,7 +15,7 @@ public class CleanupPokemon extends SlashCommand {
 
     @Override
     public boolean handle(SlashCommandInteractionEvent event) throws Exception {
-        if (!PermissionHandler.hasMasterPermission(event.getMember())) {
+        if (!discord.mian.Util.hasMasterPermission(event.getMember())) {
             event.reply("You don't have permission to use this command!").setEphemeral(true).queue();
             return false;
         }
