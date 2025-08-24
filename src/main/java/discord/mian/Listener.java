@@ -230,15 +230,7 @@ public class Listener {
                         }
                     }
                 }
-                } catch (Exception e) {
-                    Constants.LOGGER.error("Exception during roleplay thread processing", e);
-                    throw e;
-                }
-            } else {
-                Constants.LOGGER.info("Message processed in roleplay thread - no characters responded");
             }
-        } else {
-            Constants.LOGGER.info("User not authorized - ID not in ALLOWED_USER_IDS and PUBLIC is false");
         }
     }
 }
