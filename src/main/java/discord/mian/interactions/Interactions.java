@@ -755,10 +755,18 @@ public class Interactions {
                                     onSelect.getSelectedOptions().forEach(selectOption -> {
                                         ArrayList<String> prompts = datas.get(promptType);
                                         String option = selectOption.getValue();
-                                        if (!prompts.contains(option))
+                                        
+                                        if (promptType == PromptType.WORLD) {
+                                            // For personas, clear the list and set only the selected one
+                                            prompts.clear();
                                             prompts.add(option);
-                                        else
-                                            prompts.remove(option);
+                                        } else {
+                                            // For other types, use toggle behavior
+                                            if (!prompts.contains(option))
+                                                prompts.add(option);
+                                            else
+                                                prompts.remove(option);
+                                        }
                                     });
                                     accept(nextInt);
                                 }).setMaxValues(promptType == PromptType.WORLD ? 1 : 25).setPlaceholder(promptType == PromptType.WORLD ? "Select Persona" : "Add/Remove Prompts"));
