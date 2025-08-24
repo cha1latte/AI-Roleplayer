@@ -491,33 +491,47 @@ public class Roleplay {
     }
 
     public void promptCharacterToRoleplay(Character character, Message replyTo, boolean triggerAutoResponse) {
-        if (isRunningRoleplay()) {
-            if (!characters.containsKey(character.getName())) {
-                Consumer<Throwable> onFail = t ->
-                        Constants.LOGGER.error("Failed to add character into roleplay", t);
+        try {
+            Constants.LOGGER.info("promptCharacterToRoleplay called with character: " + character.getName() + ", triggerAutoResponse: " + triggerAutoResponse);
+            
+            if (isRunningRoleplay()) {
+                if (!characters.containsKey(character.getName())) {
+                    Constants.LOGGER.info("Character not in roleplay, adding: " + character.getName());
+                    Consumer<Throwable> onFail = t ->
+                            Constants.LOGGER.error("Failed to add character into roleplay", t);
 
-                historyMarker.retrieveParentMessage().queue(parentMsg -> {
-                    Container container = parentMsg.getComponentTree().getComponents().getFirst().asContainer();
-                    TextDisplay charactersDisplay = container.getComponents().stream().filter(component -> component.getUniqueId() == 152)
-                            .findFirst().get().asTextDisplay();
-                    parentMsg.editMessageComponents(container.replace(ComponentReplacer.byId(152, charactersDisplay.withContent(
-                            charactersDisplay.getContent() + ", " + character.getName()
-                    )))).useComponentsV2().queue(success -> {
-                        addData(PromptType.CHARACTER, character);
+                    historyMarker.retrieveParentMessage().queue(parentMsg -> {
+                        Container container = parentMsg.getComponentTree().getComponents().getFirst().asContainer();
+                        TextDisplay charactersDisplay = container.getComponents().stream().filter(component -> component.getUniqueId() == 152)
+                                .findFirst().get().asTextDisplay();
+                        parentMsg.editMessageComponents(container.replace(ComponentReplacer.byId(152, charactersDisplay.withContent(
+                                charactersDisplay.getContent() + ", " + character.getName()
+                        )))).useComponentsV2().queue(success -> {
+                            addData(PromptType.CHARACTER, character);
 
-                        setCurrentCharacter(character.getName());
-                        sendRoleplayMessage(triggerAutoResponse);
-                    }, onFail);
-                    // adds the character to the container
-                });
+                            setCurrentCharacter(character.getName());
+                            sendRoleplayMessage(triggerAutoResponse);
+                        }, onFail);
+                        // adds the character to the container
+                    });
+                } else {
+                    Constants.LOGGER.info("Character already in roleplay, setting current and sending message: " + character.getName());
+                    setCurrentCharacter(character.getName());
+                    sendRoleplayMessage(triggerAutoResponse);
+                }
             } else {
-                setCurrentCharacter(character.getName());
-                sendRoleplayMessage(triggerAutoResponse);
+                Constants.LOGGER.error("promptCharacterToRoleplay called but roleplay not running");
             }
+        } catch (Exception e) {
+            Constants.LOGGER.error("Exception in promptCharacterToRoleplay", e);
+            throw e;
         }
     }
 
     public void sendRoleplayMessage(boolean triggerAutoResponse) {
+        try {
+            Constants.LOGGER.info("sendRoleplayMessage called with triggerAutoResponse: " + triggerAutoResponse);
+            
         if (!runningRoleplay) {
             historyMarker.sendMessage(MessageCreateData.fromContent(
                     Util.botifyMessage("Cannot make a response since there is no ongoing chat!")
@@ -666,6 +680,10 @@ public class Roleplay {
             messageCreateData.queue(consumer, onError);
         } catch (Exception e) {
             onError.accept(e);
+        }
+        } catch (Exception e) {
+            Constants.LOGGER.error("Exception in sendRoleplayMessage", e);
+            throw e;
         }
     }
 
