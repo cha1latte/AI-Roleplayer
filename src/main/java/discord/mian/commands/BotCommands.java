@@ -18,6 +18,7 @@ public class BotCommands {
             new Poke(),
             new SetBotRole(),
             new ChangePresence(),
+            new CleanupPokemon(),
             new Talk(),
             new ChangeAvatar(),
             new EditModelProperties(),

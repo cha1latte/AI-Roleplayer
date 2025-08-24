@@ -264,4 +264,87 @@ public class Server {
         personaDatas.putIfAbsent(name, data);
     }
 
+    // Temporary method to clean up non-Pokemon content from database
+    public void cleanupNonPokemonContent() {
+        long serverId = guild.getIdLong();
+        
+        // Pokemon content to keep (case-insensitive matching)
+        String[] pokemonSystemPrompts = {"pokemon adventure"};
+        String[] pokemonPersonas = {"pokemon trainer"};
+        String[] pokemonCharacters = {"pokemon adventure", "pokemon-adventure"};
+        
+        // Remove non-Pokemon system prompts
+        Util.DATABASE.getCollection("prompt", InstructionDocument.class)
+                .find(Filters.and(
+                        Filters.eq("server", serverId),
+                        Filters.eq("type", "instructions")
+                )).forEach(document -> {
+                    boolean isPokemon = false;
+                    String name = document.getName().toLowerCase();
+                    for (String pokemonName : pokemonSystemPrompts) {
+                        if (name.contains(pokemonName.toLowerCase())) {
+                            isPokemon = true;
+                            break;
+                        }
+                    }
+                    if (!isPokemon) {
+                        Util.DATABASE.getCollection("prompt").deleteOne(
+                                Filters.eq("_id", document.getId())
+                        );
+                        Constants.LOGGER.info("Removed non-Pokemon system prompt: " + document.getName());
+                    }
+                });
+        
+        // Remove non-Pokemon personas
+        Util.DATABASE.getCollection("prompt", WorldDocument.class)
+                .find(Filters.and(
+                        Filters.eq("server", serverId),
+                        Filters.eq("type", "worlds")
+                )).forEach(document -> {
+                    boolean isPokemon = false;
+                    String name = document.getName().toLowerCase();
+                    for (String pokemonName : pokemonPersonas) {
+                        if (name.contains(pokemonName.toLowerCase())) {
+                            isPokemon = true;
+                            break;
+                        }
+                    }
+                    if (!isPokemon) {
+                        Util.DATABASE.getCollection("prompt").deleteOne(
+                                Filters.eq("_id", document.getId())
+                        );
+                        Constants.LOGGER.info("Removed non-Pokemon persona: " + document.getName());
+                    }
+                });
+        
+        // Remove non-Pokemon characters
+        Util.DATABASE.getCollection("prompt", CharacterDocument.class)
+                .find(Filters.and(
+                        Filters.eq("server", serverId),
+                        Filters.eq("type", "characters")
+                )).forEach(document -> {
+                    boolean isPokemon = false;
+                    String name = document.getName().toLowerCase();
+                    for (String pokemonName : pokemonCharacters) {
+                        if (name.contains(pokemonName.toLowerCase())) {
+                            isPokemon = true;
+                            break;
+                        }
+                    }
+                    if (!isPokemon) {
+                        Util.DATABASE.getCollection("prompt").deleteOne(
+                                Filters.eq("_id", document.getId())
+                        );
+                        Constants.LOGGER.info("Removed non-Pokemon character: " + document.getName());
+                    }
+                });
+        
+        // Clear the cached data so it reloads from database
+        systemPromptDatas.clear();
+        personaDatas.clear();
+        characterDatas.clear();
+        
+        Constants.LOGGER.info("Cleanup completed - only Pokemon content remains");
+    }
+
 }
