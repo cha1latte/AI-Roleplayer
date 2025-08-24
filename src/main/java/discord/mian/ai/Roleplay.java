@@ -1149,12 +1149,12 @@ public class Roleplay {
                     .toList();
             Constants.LOGGER.info("Total available characters after restoration: " + availableCharacters.size());
             
-            // Identify which character was being used in this thread
-            identifyActiveCharacterFromHistory(threadChannel);
+            // Identify which character was being used in this thread (synchronously)
+            identifyActiveCharacterFromHistorySync(threadChannel);
             
-            // Restore webhook for the thread
+            // Restore webhook for the thread (synchronously)
             Constants.LOGGER.info("Restoring webhook for thread...");
-            restoreWebhookForThread(threadChannel);
+            restoreWebhookForThreadSync(threadChannel);
         }
     }
     
@@ -1230,5 +1230,69 @@ public class Roleplay {
         }, error -> {
             Constants.LOGGER.error("Failed to retrieve thread history for character identification", error);
         });
+    }
+    
+    private void identifyActiveCharacterFromHistorySync(ThreadChannel threadChannel) {
+        Constants.LOGGER.info("Analyzing thread history to identify active character (sync)...");
+        
+        try {
+            // Get messages synchronously
+            List<Message> messages = threadChannel.getIterableHistory().limit(50).complete();
+            
+            for (Message message : messages) {
+                if (message.isWebhookMessage()) {
+                    String authorName = message.getAuthor().getName();
+                    Constants.LOGGER.info("Found webhook message from: " + authorName);
+                    
+                    // Check if this author name matches any of our characters
+                    Character matchingCharacter = characters.get(authorName);
+                    if (matchingCharacter != null) {
+                        this.currentCharacter = matchingCharacter;
+                        Constants.LOGGER.info("Identified active character from history (sync): " + matchingCharacter.getName());
+                        return;
+                    }
+                }
+            }
+            
+            Constants.LOGGER.info("No active character identified from thread history (sync)");
+        } catch (Exception e) {
+            Constants.LOGGER.error("Failed to retrieve thread history for character identification (sync)", e);
+        }
+    }
+    
+    private void restoreWebhookForThreadSync(ThreadChannel threadChannel) {
+        try {
+            List<Webhook> webhooks = threadChannel.getParentChannel().asTextChannel().retrieveWebhooks().complete();
+            
+            Webhook existingWebhook = webhooks.stream()
+                    .filter(webhook -> webhook.getName().equals(AIBot.bot.getJDA().getSelfUser().getName()))
+                    .findFirst()
+                    .orElse(null);
+                    
+            if (existingWebhook != null) {
+                this.webhook = existingWebhook;
+                Constants.LOGGER.info("Restored existing webhook (sync): " + existingWebhook.getName());
+            } else {
+                Constants.LOGGER.info("No existing webhook found, creating new one (sync)...");
+                WebhookAction action = threadChannel.getParentChannel().asTextChannel()
+                        .createWebhook(AIBot.bot.getJDA().getSelfUser().getName());
+                        
+                if (AIBot.bot.getJDA().getSelfUser().getAvatar() != null) {
+                    try {
+                        InputStream inputStream = AIBot.bot.getJDA().getSelfUser().getAvatar().download().get();
+                        this.webhook = action.setAvatar(Icon.from(inputStream)).complete();
+                        Constants.LOGGER.info("Created new webhook with avatar (sync): " + this.webhook.getName());
+                    } catch (Exception e) {
+                        this.webhook = action.complete();
+                        Constants.LOGGER.info("Created new webhook without avatar (sync): " + this.webhook.getName());
+                    }
+                } else {
+                    this.webhook = action.complete();
+                    Constants.LOGGER.info("Created new webhook (sync): " + this.webhook.getName());
+                }
+            }
+        } catch (Exception e) {
+            Constants.LOGGER.error("Failed to restore webhook for thread (sync)", e);
+        }
     }
 }
