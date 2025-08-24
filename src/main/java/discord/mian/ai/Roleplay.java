@@ -818,12 +818,14 @@ public class Roleplay {
 
             messages.add(ChatMessage.SystemMessage.of(systemPromptsMessage.toString(), "System Prompts"));
 
-            StringBuilder combinedLore = new StringBuilder();
-            combinedLore.append("The following is lore and information about the persona that this roleplay takes place in!");
-            for (World world : personaLore.values()) {
-                combinedLore.append(world.getChatMessage(character).getContent()).append("\n");
+            if (!personaLore.isEmpty()) {
+                StringBuilder combinedLore = new StringBuilder();
+                combinedLore.append("The following is lore and information about the persona that this roleplay takes place in!");
+                for (World world : personaLore.values()) {
+                    combinedLore.append(world.getChatMessage(character).getContent()).append("\n");
+                }
+                messages.add(ChatMessage.SystemMessage.of(combinedLore.toString(), "Lore"));
             }
-            messages.add(ChatMessage.SystemMessage.of(combinedLore.toString(), "Lore"));
 
             String characterPersona = "Understand the character definition! You are playing "+character.getName()+". DO NOT PLAY ANY OTHER CHARACTER. \n" +
                     character.getChatMessage(character).getContent();
@@ -877,9 +879,7 @@ public class Roleplay {
                               List<Character> characterList,
                               Consumer<Webhook> onSuccess
     ) throws ExecutionException, InterruptedException, IOException {
-        // System prompts are now optional - no validation needed
-        if (personas.size() <= 0)
-            throw new RuntimeException("Need at least one set of persona lore!");
+        // System prompts and personas are now optional - no validation needed
 
         event.deferReply().queue(hook -> {
             List<ContainerChildComponent> components = new ArrayList<>();

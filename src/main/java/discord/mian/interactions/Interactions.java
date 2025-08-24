@@ -706,8 +706,8 @@ public class Interactions {
         ArrayList<Button> roleplayComponents = new ArrayList<>();
 
         roleplayComponents.add(InteractionCreator.createButton("Create Roleplay", (event) -> {
-                    if (server.getCharacterDatas().isEmpty() || server.getPersonaDatas().isEmpty()) {
-                        event.reply("Must at least have one character and persona created in the bot in order to start a roleplay!").setEphemeral(true).queue();
+                    if (server.getCharacterDatas().isEmpty()) {
+                        event.reply("Must at least have one character created in the bot in order to start a roleplay!").setEphemeral(true).queue();
                         return;
                     }
 
@@ -777,7 +777,7 @@ public class Interactions {
                                                     promptType,
                                                     direction, enabledData), givenMsg, promptType, false, true,
                                             selects, null, 90L, InteractionCreator.createButton(Emoji.fromFormatted("✅"), buttonEvent -> {
-                                                if (datas.get(promptType).isEmpty() && promptType != PromptType.INSTRUCTION) {
+                                                if (datas.get(promptType).isEmpty() && promptType != PromptType.INSTRUCTION && promptType != PromptType.WORLD) {
                                                     buttonEvent.reply("Need at least one set of " + display + "!").setEphemeral(true).queue();
                                                     return;
                                                 }
