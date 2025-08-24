@@ -498,7 +498,7 @@ public class Interactions {
         List<String> display = server.getDatas(promptType).keySet().stream().toList();
 
         List<ContainerChildComponent> components = new ArrayList<>();
-        components.add(TextDisplay.of("# Available Prompts"));
+        components.add(TextDisplay.of("# " + promptType.displayName));
         components.add(Separator.createDivider(Separator.Spacing.SMALL));
 
         if (preDescription != null) {
