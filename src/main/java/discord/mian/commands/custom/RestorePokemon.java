@@ -5,9 +5,6 @@ import discord.mian.ai.AIBot;
 import discord.mian.commands.SlashCommand;
 import discord.mian.data.Server;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-
-import java.util.List;
 
 public class RestorePokemon extends SlashCommand {
     public RestorePokemon() {
@@ -15,10 +12,10 @@ public class RestorePokemon extends SlashCommand {
     }
 
     @Override
-    public void execute(SlashCommandInteractionEvent event) {
+    public boolean handle(SlashCommandInteractionEvent event) throws Exception {
         if (!Util.hasMasterPermission(event.getMember())) {
             event.reply("You don't have permission to use this command!").setEphemeral(true).queue();
-            return;
+            return true;
         }
         
         event.deferReply().queue();
@@ -34,10 +31,7 @@ public class RestorePokemon extends SlashCommand {
         } catch (Exception e) {
             event.getHook().sendMessage("Error during Pokemon content restoration: " + e.getMessage()).queue();
         }
+        return true;
     }
 
-    @Override
-    public List<OptionData> getOptions() {
-        return List.of();
-    }
 }
