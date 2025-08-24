@@ -89,6 +89,7 @@ public class Roleplay {
     private final HashMap<String, Character> characters;
     private Character currentCharacter;
     private boolean runningRoleplay = false;
+    private boolean isRestoredRoleplay = false;
 
     public Roleplay(Guild guild) {
 //        this.llm = SimpleOpenAI.builder()
@@ -580,8 +581,8 @@ public class Roleplay {
             (latestAssistantMessage != null ? "exists" : "null") + 
             ", startingMessage: " + (startingMessage != null ? "exists" : "null") + 
             ", character: " + currentCharacter.getName());
-        // Skip starting message if this is a restored thread (historyMarker exists and runningRoleplay was just set)
-        boolean isRestoredThread = (historyMarker != null && historyMarker instanceof ThreadChannel);
+        // Skip starting message if this is a restored thread
+        boolean isRestoredThread = isRestoredRoleplay;
         
         if (latestAssistantMessage == null && startingMessage != null && !startingMessage.trim().isEmpty() && !isRestoredThread) {
             Constants.LOGGER.info("Sending starting message for character: " + currentCharacter.getName());
@@ -943,6 +944,7 @@ public class Roleplay {
             this.webhook = hook;
 
             this.runningRoleplay = true;
+            this.isRestoredRoleplay = false; // This is a fresh roleplay, not restored
 
             this.latestAssistantMessage = null;
             this.swipes = null;
@@ -1143,6 +1145,7 @@ public class Roleplay {
         if (!runningRoleplay && threadChannel != null) {
             this.historyMarker = threadChannel;
             this.runningRoleplay = true;
+            this.isRestoredRoleplay = true;
             Constants.LOGGER.info("Restored roleplay state from thread: " + threadChannel.getName() + " in guild: " + guild.getName());
             
             // Restore all available characters, personas, and system prompts from server data
