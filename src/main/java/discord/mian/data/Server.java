@@ -549,28 +549,45 @@ public class Server {
             }
             
             if (pokemonCharacters == 0) {
+                Constants.LOGGER.info("Pokemon character missing, attempting to restore...");
                 try {
                     File characterFile = new File(Util.getDefaultsFor(PromptType.CHARACTER), "pokemon-adventure.json");
+                    Constants.LOGGER.info("Checking for Pokemon character file at: " + characterFile.getAbsolutePath());
                     if (characterFile.exists()) {
                         ObjectMapper mapper = new ObjectMapper();
                         JsonNode characterNode = mapper.readTree(characterFile);
+                        String characterName = characterNode.get("name").asText();
+                        Constants.LOGGER.info("Creating Pokemon character: " + characterName);
                         createCharacter(
-                                characterNode.get("name").asText(),
+                                characterName,
                                 characterNode.get("prompt").asText(),
                                 characterNode.get("talkability").asDouble()
                         );
-                        Character character = characterDatas.get(characterNode.get("name").asText());
+                        Character character = characterDatas.get(characterName);
                         if (character != null) {
                             character.updateDocument(document -> 
                                 document.setAvatar(characterNode.get("avatar").asText())
                             );
                         }
-                        Constants.LOGGER.info("Restored Pokemon Adventure character from defaults");
+                        Constants.LOGGER.info("Successfully restored Pokemon Adventure character from defaults");
+                        
+                        // Verify it was created
+                        long verifyCount = Util.DATABASE.getCollection("prompt")
+                                .countDocuments(Filters.and(
+                                        Filters.eq("server", serverId),
+                                        Filters.eq("type", "characters"),
+                                        Filters.regex("name", "(?i)pokemon")
+                                ));
+                        Constants.LOGGER.info("Verification: Pokemon characters now in database: " + verifyCount);
                         restored = true;
+                    } else {
+                        Constants.LOGGER.warn("Pokemon character file not found at: " + characterFile.getAbsolutePath());
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     Constants.LOGGER.error("Failed to restore Pokemon Adventure character", e);
                 }
+            } else {
+                Constants.LOGGER.info("Pokemon character already exists, skipping creation");
             }
             
             // Clear cached data to force reload

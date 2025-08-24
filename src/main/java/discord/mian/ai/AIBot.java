@@ -92,7 +92,7 @@ public class AIBot {
         Server server = servers.get(guild);
         if (server != null) {
             try {
-                // Check if Pokemon system prompt exists for this server
+                // Check if Pokemon content exists for this server
                 long pokemonInstructions = Util.DATABASE.getCollection("prompt")
                         .countDocuments(Filters.and(
                                 Filters.eq("server", guild.getIdLong()),
@@ -103,8 +103,15 @@ public class AIBot {
                                 Filters.regex("name", "(?i)pokemon.*adventure")
                         ));
                 
-                if (pokemonInstructions == 0) {
-                    Constants.LOGGER.info("Pokemon system prompt missing for " + guild.getName() + ", forcing restoration...");
+                long pokemonCharacters = Util.DATABASE.getCollection("prompt")
+                        .countDocuments(Filters.and(
+                                Filters.eq("server", guild.getIdLong()),
+                                Filters.eq("type", "characters"),
+                                Filters.regex("name", "(?i)pokemon")
+                        ));
+                
+                if (pokemonInstructions == 0 || pokemonCharacters == 0) {
+                    Constants.LOGGER.info("Pokemon content missing for " + guild.getName() + " (Instructions: " + pokemonInstructions + ", Characters: " + pokemonCharacters + "), forcing restoration...");
                     server.restorePokemonContent();
                 }
             } catch (Exception e) {
