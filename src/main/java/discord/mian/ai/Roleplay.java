@@ -580,7 +580,10 @@ public class Roleplay {
             (latestAssistantMessage != null ? "exists" : "null") + 
             ", startingMessage: " + (startingMessage != null ? "exists" : "null") + 
             ", character: " + currentCharacter.getName());
-        if (latestAssistantMessage == null && startingMessage != null && !startingMessage.trim().isEmpty()) {
+        // Skip starting message if this is a restored thread (historyMarker exists and runningRoleplay was just set)
+        boolean isRestoredThread = (historyMarker != null && historyMarker instanceof ThreadChannel);
+        
+        if (latestAssistantMessage == null && startingMessage != null && !startingMessage.trim().isEmpty() && !isRestoredThread) {
             Constants.LOGGER.info("Sending starting message for character: " + currentCharacter.getName());
             // Send the predefined starting message instead of generating
             String avatarLink = currentCharacter.getDocument().getAvatar();
@@ -608,6 +611,8 @@ public class Roleplay {
                 }
             });
             return; // Only return here for starting messages
+        } else if (isRestoredThread) {
+            Constants.LOGGER.info("Skipping starting message - this is a restored thread, will generate contextual response");
         }
         
         if (this.errorMsgCleanup != null) {
