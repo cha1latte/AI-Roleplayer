@@ -980,23 +980,7 @@ public class Roleplay {
                     onSuccess.accept(hook);
             }, onFail);
 
-            ComponentReplacer replacer = ComponentReplacer.byId(1, oldComponent -> {
-                if (oldComponent instanceof TextDisplay display && !display.getContent().contains(" ✅")) {
-                    return display.withContent(display.getContent() + " ✅");
-                }
-                return oldComponent;
-            });
-            if (optionalHook != null) {
-                optionalHook.retrieveOriginal().queue(msg -> {
-                    optionalHook.editOriginalComponents(
-                            msg.getComponentTree().replace(replacer)
-                    ).useComponentsV2().queue(RestAction.getDefaultSuccess(), onFail);
-                }, onFail);
-            } else {
-                roleplayInfo.editMessageComponents(
-                        roleplayInfo.getComponentTree().replace(replacer)
-                ).useComponentsV2().queue(RestAction.getDefaultSuccess(), onFail);
-            }
+            // Checkmark functionality removed - no longer modifying message components
         };
 
         roleplayInfo.getChannel().asTextChannel().retrieveWebhooks().queue(webhooks -> webhooks.stream().filter(find -> find.getName().equals(AIBot.bot.getJDA().getSelfUser().getName()))
@@ -1027,27 +1011,10 @@ public class Roleplay {
                             (t) ->
                                     Constants.LOGGER.warn("AI Response was unable to be stripped of its optional components", t));
         }
+        // Checkmark removal functionality removed since we no longer add checkmarks
         if (parentID != 0) {
-            guild.getTextChannelCache().stream().forEach(textChannel -> {
-                textChannel.retrieveMessageById(parentID).queue(oldMessage -> {
-                    oldMessage.editMessageComponents(oldMessage.getComponentTree().replace(
-                            ComponentReplacer.byId(1, oldComponent -> {
-                                if (oldComponent instanceof TextDisplay display) {
-                                    int index = display.getContent().indexOf(" ✅");
-                                    if (index != -1) {
-                                        return TextDisplay.of(display.getContent().substring(0, index))
-                                                .withUniqueId(1);
-                                    } else {
-                                        return oldComponent;
-                                    }
-                                }
-                                return oldComponent;
-                            })
-                    )).useComponentsV2().queue(RestAction.getDefaultSuccess(), ignored -> {
-                    });
-                }, ignored -> {
-                });
-            });
+            // Reset parentID but don't modify message components
+            parentID = 0;
         }
         parentID = 0L;
         historyMarker = null;
