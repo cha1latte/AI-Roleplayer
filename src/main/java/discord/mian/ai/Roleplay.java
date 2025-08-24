@@ -497,23 +497,46 @@ public class Roleplay {
             if (isRunningRoleplay()) {
                 if (!characters.containsKey(character.getName())) {
                     Constants.LOGGER.info("Character not in roleplay, adding: " + character.getName());
-                    Consumer<Throwable> onFail = t ->
-                            Constants.LOGGER.error("Failed to add character into roleplay", t);
+                    
+                    // Add character data directly during restoration instead of trying to edit parent message
+                    try {
+                        addData(PromptType.CHARACTER, character);
+                        setCurrentCharacter(character.getName());
+                        Constants.LOGGER.info("Successfully added character during restoration: " + character.getName());
+                        sendRoleplayMessage(triggerAutoResponse);
+                    } catch (Exception e) {
+                        Constants.LOGGER.error("Failed to add character during restoration, trying parent message update", e);
+                        
+                        // Fallback to original method if direct addition fails
+                        Consumer<Throwable> onFail = t ->
+                                Constants.LOGGER.error("Failed to add character into roleplay via parent message", t);
 
-                    historyMarker.retrieveParentMessage().queue(parentMsg -> {
-                        Container container = parentMsg.getComponentTree().getComponents().getFirst().asContainer();
-                        TextDisplay charactersDisplay = container.getComponents().stream().filter(component -> component.getUniqueId() == 152)
-                                .findFirst().get().asTextDisplay();
-                        parentMsg.editMessageComponents(container.replace(ComponentReplacer.byId(152, charactersDisplay.withContent(
-                                charactersDisplay.getContent() + ", " + character.getName()
-                        )))).useComponentsV2().queue(success -> {
-                            addData(PromptType.CHARACTER, character);
-
-                            setCurrentCharacter(character.getName());
-                            sendRoleplayMessage(triggerAutoResponse);
+                        historyMarker.retrieveParentMessage().queue(parentMsg -> {
+                            try {
+                                Container container = parentMsg.getComponentTree().getComponents().getFirst().asContainer();
+                                TextDisplay charactersDisplay = container.getComponents().stream().filter(component -> component.getUniqueId() == 152)
+                                        .findFirst().orElse(null);
+                                        
+                                if (charactersDisplay != null) {
+                                    parentMsg.editMessageComponents(container.replace(ComponentReplacer.byId(152, charactersDisplay.withContent(
+                                            charactersDisplay.getContent() + ", " + character.getName()
+                                    )))).useComponentsV2().queue(success -> {
+                                        addData(PromptType.CHARACTER, character);
+                                        setCurrentCharacter(character.getName());
+                                        sendRoleplayMessage(triggerAutoResponse);
+                                    }, onFail);
+                                } else {
+                                    Constants.LOGGER.error("Could not find character display component, proceeding without updating parent");
+                                    addData(PromptType.CHARACTER, character);
+                                    setCurrentCharacter(character.getName());
+                                    sendRoleplayMessage(triggerAutoResponse);
+                                }
+                            } catch (Exception ex) {
+                                Constants.LOGGER.error("Exception while updating parent message components", ex);
+                                onFail.accept(ex);
+                            }
                         }, onFail);
-                        // adds the character to the container
-                    });
+                    }
                 } else {
                     Constants.LOGGER.info("Character already in roleplay, setting current and sending message: " + character.getName());
                     setCurrentCharacter(character.getName());
