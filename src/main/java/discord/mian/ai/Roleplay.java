@@ -804,13 +804,16 @@ public class Roleplay {
 
         if (character != null) {
             StringBuilder systemPromptsMessage = new StringBuilder();
-            systemPromptsMessage.append("Follow the system prompts below! You are participating in a roleplay with other users!\n");
-            systemPromptsMessage.append("This is a chatbot roleplay. You are roleplaying with other users, your responses should only be a few sentences long, should incorporate humor and shouldn't be too serious. The only time this can be overridden is if later system prompts conflict with these. \nKeep responses within a few sentences!\nDo not escape newlines or quotes in your response. Respond with actual characters, not \\\\n or \\\\\\\". Discord will display it properly.\n");
+            systemPromptsMessage.append("You are participating in a roleplay with other users!\n");
+            systemPromptsMessage.append("This is a chatbot roleplay. You are roleplaying with other users, your responses should only be a few sentences long, should incorporate humor and shouldn't be too serious. The only time this can be overridden is if custom system prompts conflict with these. \nKeep responses within a few sentences!\nDo not escape newlines or quotes in your response. Respond with actual characters, not \\\\n or \\\\\\\". Discord will display it properly.\n");
             systemPromptsMessage.append("Each user message has a name field. Use this to determine who is speaking and maintain consistency");
             systemPromptsMessage.append("Do not include the character name in your response, this is already provided programmatically by the code.\n");
 
-            for (Instruction systemPrompt : systemPrompts.values()) {
-                systemPromptsMessage.append(systemPrompt.getChatMessage(character).getContent()).append("\n");
+            if (!systemPrompts.isEmpty()) {
+                systemPromptsMessage.append("\nAdditional system prompts:\n");
+                for (Instruction systemPrompt : systemPrompts.values()) {
+                    systemPromptsMessage.append(systemPrompt.getChatMessage(character).getContent()).append("\n");
+                }
             }
 
             messages.add(ChatMessage.SystemMessage.of(systemPromptsMessage.toString(), "System Prompts"));
@@ -874,8 +877,7 @@ public class Roleplay {
                               List<Character> characterList,
                               Consumer<Webhook> onSuccess
     ) throws ExecutionException, InterruptedException, IOException {
-        if (systemPromptList.size() <= 0)
-            throw new RuntimeException("Need at least one set of system prompts!");
+        // System prompts are now optional - no validation needed
         if (personas.size() <= 0)
             throw new RuntimeException("Need at least one set of persona lore!");
 

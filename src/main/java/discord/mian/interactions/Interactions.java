@@ -706,8 +706,8 @@ public class Interactions {
         ArrayList<Button> roleplayComponents = new ArrayList<>();
 
         roleplayComponents.add(InteractionCreator.createButton("Create Roleplay", (event) -> {
-                    if (server.getSystemPromptDatas().isEmpty() || server.getCharacterDatas().isEmpty() || server.getPersonaDatas().isEmpty()) {
-                        event.reply("Must at least have one system prompt, character and persona created in the bot in order to start a roleplay!").setEphemeral(true).queue();
+                    if (server.getCharacterDatas().isEmpty() || server.getPersonaDatas().isEmpty()) {
+                        event.reply("Must at least have one character and persona created in the bot in order to start a roleplay!").setEphemeral(true).queue();
                         return;
                     }
 
