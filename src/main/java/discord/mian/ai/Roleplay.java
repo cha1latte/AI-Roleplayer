@@ -1318,14 +1318,14 @@ public class Roleplay {
                 // For webhook messages, we can't check the author since webhooks have different authors
                 // Instead, we assume that if we successfully restored the webhook for this thread,
                 // then the webhook messages belong to us and we can safely restore latestAssistantMessage
-                if (mostRecentBotMessage.isWebhookMessage()) {
-                    this.latestAssistantMessage = mostRecentBotMessage;
-                    Constants.LOGGER.info("Restored latestAssistantMessage from webhook message to prevent starting message");
-                } else if (mostRecentBotMessage.getAuthor().equals(AIBot.bot.getJDA().getSelfUser())) {
+                // However, we should NOT restore webhook messages as latestAssistantMessage because
+                // the bot tries to edit latestAssistantMessage later, and editing webhook messages
+                // from previous instances causes issues
+                if (mostRecentBotMessage.getAuthor().equals(AIBot.bot.getJDA().getSelfUser())) {
                     this.latestAssistantMessage = mostRecentBotMessage;
                     Constants.LOGGER.info("Restored latestAssistantMessage from bot message to prevent starting message");
                 } else {
-                    Constants.LOGGER.info("Skipping latestAssistantMessage restoration - message was sent by different bot instance");
+                    Constants.LOGGER.info("Skipping latestAssistantMessage restoration - message was sent by different bot instance or is webhook message");
                 }
             } else {
                 Constants.LOGGER.info("Skipping latestAssistantMessage restoration - conditions not met");
