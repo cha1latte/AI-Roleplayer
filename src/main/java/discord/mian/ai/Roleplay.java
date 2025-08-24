@@ -1304,9 +1304,14 @@ public class Roleplay {
             }
             
             // Restore the latest assistant message to prevent sending starting message
+            // But only if it was sent by the current bot instance (to avoid IllegalStateException)
             if (mostRecentBotMessage != null && this.currentCharacter != null) {
-                this.latestAssistantMessage = mostRecentBotMessage;
-                Constants.LOGGER.info("Restored latestAssistantMessage from history to prevent starting message");
+                if (mostRecentBotMessage.getAuthor().equals(AIBot.bot.getJDA().getSelfUser())) {
+                    this.latestAssistantMessage = mostRecentBotMessage;
+                    Constants.LOGGER.info("Restored latestAssistantMessage from history to prevent starting message");
+                } else {
+                    Constants.LOGGER.info("Skipping latestAssistantMessage restoration - message was sent by different bot instance");
+                }
             }
             
             if (this.currentCharacter == null) {
