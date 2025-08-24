@@ -761,7 +761,7 @@ public class Interactions {
                                             prompts.remove(option);
                                     });
                                     accept(nextInt);
-                                }).setMaxValues(25).setPlaceholder("Add/Remove Prompts"));
+                                }).setMaxValues(promptType == PromptType.WORLD ? 1 : 25).setPlaceholder(promptType == PromptType.WORLD ? "Select Persona" : "Add/Remove Prompts"));
 
                                 selects.add(
                                         InteractionCreator.createStringMenu(onSelect ->
