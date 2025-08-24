@@ -184,7 +184,13 @@ public class Listener {
                 // If it's a thread and the bot isn't tracking it as active, try to restore it
                 if (!roleplay.isRunningRoleplay()) {
                     Constants.LOGGER.info("Restoring roleplay from thread: " + threadChannel.getName());
-                    roleplay.restoreRoleplayFromThread(threadChannel);
+                    try {
+                        roleplay.restoreRoleplayFromThread(threadChannel);
+                        Constants.LOGGER.info("Thread restoration completed successfully");
+                    } catch (Exception e) {
+                        Constants.LOGGER.error("Exception during thread restoration", e);
+                        throw e;
+                    }
                 } else {
                     Constants.LOGGER.info("Roleplay already running, treating thread as roleplay thread");
                 }
@@ -197,10 +203,11 @@ public class Listener {
             
             if (isRoleplayThread) {
                 Constants.LOGGER.info("Processing message in roleplay thread");
-                Random random = new Random();
+                try {
+                    Random random = new Random();
 
-                Character fromContent = roleplay.findRespondingCharacterFromContent(msg.getContentRaw());
-                Constants.LOGGER.info("findRespondingCharacterFromContent result: " + (fromContent != null ? fromContent.getName() : "null"));
+                    Character fromContent = roleplay.findRespondingCharacterFromContent(msg.getContentRaw());
+                    Constants.LOGGER.info("findRespondingCharacterFromContent result: " + (fromContent != null ? fromContent.getName() : "null"));
                 
                 if (fromContent != null && !fromContent.getName().equals(event.getAuthor().getName())) {
                     Constants.LOGGER.info("Found character from content: " + fromContent.getName() + ", prompting to roleplay");
@@ -259,6 +266,10 @@ public class Listener {
                             Constants.LOGGER.info("only_chat_on_mention is true, not responding to general message");
                         }
                     }
+                }
+                } catch (Exception e) {
+                    Constants.LOGGER.error("Exception during roleplay thread processing", e);
+                    throw e;
                 }
             } else {
                 Constants.LOGGER.info("Message processed in roleplay thread - no characters responded");
