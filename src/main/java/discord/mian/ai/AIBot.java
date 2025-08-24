@@ -94,7 +94,14 @@ public class AIBot {
     }
 
     public void onServerJoin(Guild guild) {
-        servers.put(guild, new Server(guild));
+        try {
+            Server server = new Server(guild);
+            servers.put(guild, server);
+            Constants.LOGGER.info("Successfully initialized server data for guild: " + guild.getName());
+        } catch (Exception e) {
+            Constants.LOGGER.error("Failed to create server data for guild: " + guild.getName(), e);
+            throw new RuntimeException("Failed to initialize server for guild: " + guild.getName(), e);
+        }
     }
 
     public void removeServer(Guild guild) {

@@ -32,8 +32,23 @@ public class Listener {
     @SubscribeEvent
     public void onMessageDelete(MessageDeleteEvent event) {
         long id = event.getMessageIdLong();
+        
+        // Ensure server data exists before getting chat
+        if(AIBot.bot.getServerData(event.getGuild()) == null){
+            try {
+                AIBot.bot.onServerJoin(event.getGuild());
+                if(AIBot.bot.getServerData(event.getGuild()) == null) {
+                    Constants.LOGGER.warn("Failed to initialize server data for message delete event in guild: " + event.getGuild().getName());
+                    return;
+                }
+            } catch (Exception e) {
+                Constants.LOGGER.error("Failed to initialize server for message delete event in guild: " + event.getGuild().getName(), e);
+                return;
+            }
+        }
+        
         Roleplay roleplay = AIBot.bot.getChat(event.getGuild());
-        if (roleplay.isRunningRoleplay() && roleplay.getParentID() == id) {
+        if (roleplay != null && roleplay.isRunningRoleplay() && roleplay.getParentID() == id) {
             roleplay.stopRoleplay(); // stops roleplay in the event that parent msg was deleted
         }
     }
@@ -82,7 +97,18 @@ public class Listener {
     @SubscribeEvent
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) throws Exception {
         if(AIBot.bot.getServerData(event.getGuild()) == null){
-            AIBot.bot.onServerJoin(event.getGuild());
+            try {
+                AIBot.bot.onServerJoin(event.getGuild());
+                // Verify the server was actually created
+                if(AIBot.bot.getServerData(event.getGuild()) == null) {
+                    event.reply("❌ Failed to initialize server data. Please try again.").setEphemeral(true).queue();
+                    return;
+                }
+            } catch (Exception e) {
+                Constants.LOGGER.error("Failed to initialize server for guild: " + event.getGuild().getName(), e);
+                event.reply("❌ Failed to initialize server. Please try again later.").setEphemeral(true).queue();
+                return;
+            }
         }
         BotCommands.handleCommand(event);
     }
