@@ -231,9 +231,12 @@ public class Server {
     }
 
     public HashMap<String, Character> getCharacterDatas() {
-        Constants.LOGGER.info("Loading character data for server: " + guild.getName());
+        Constants.LOGGER.info("Loading character data for server: " + guild.getName() + " (Current cache size: " + characterDatas.size() + ")");
         String expectedType = PromptType.CHARACTER.displayName.toLowerCase();
-        Constants.LOGGER.info("Looking for characters with type: " + expectedType);
+        Constants.LOGGER.info("Looking for characters with type: '" + expectedType + "' and server ID: " + guild.getIdLong());
+        
+        // Always refresh from database to ensure we have latest data
+        characterDatas.clear();
         
         try (MongoCursor<CharacterDocument> cursor = Util.DATABASE.getCollection("prompt", CharacterDocument.class)
                 .find(Filters.and(
@@ -243,11 +246,24 @@ public class Server {
             int foundCount = 0;
             while (cursor.hasNext()) {
                 CharacterDocument document = cursor.next();
-                Constants.LOGGER.info("Found character: " + document.getName() + " with type: " + document.getType());
-                characterDatas.putIfAbsent(document.getName(), new Character(document));
+                Constants.LOGGER.info("Found character: '" + document.getName() + "' with type: '" + document.getType() + "'");
+                characterDatas.put(document.getName(), new Character(document));
                 foundCount++;
             }
-            Constants.LOGGER.info("Loaded " + foundCount + " characters from database. Cache now contains: " + characterDatas.size());
+            Constants.LOGGER.info("Loaded " + foundCount + " characters from database. Final cache contains: " + characterDatas.size());
+            
+            // If we found no characters, let's also try a broader search to see what's in the database
+            if (foundCount == 0) {
+                Constants.LOGGER.info("No characters found with expected criteria, checking all character documents for this server...");
+                try (MongoCursor<CharacterDocument> allCursor = Util.DATABASE.getCollection("prompt", CharacterDocument.class)
+                        .find(Filters.eq("server", guild.getIdLong()))
+                        .iterator()) {
+                    while (allCursor.hasNext()) {
+                        CharacterDocument doc = allCursor.next();
+                        Constants.LOGGER.info("Found document: name='" + doc.getName() + "', type='" + doc.getType() + "', server=" + doc.getServer());
+                    }
+                }
+            }
         }
 
         return characterDatas;

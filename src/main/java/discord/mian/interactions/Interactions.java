@@ -706,11 +706,19 @@ public class Interactions {
         ArrayList<Button> roleplayComponents = new ArrayList<>();
 
         roleplayComponents.add(InteractionCreator.createButton("Create Roleplay", (event) -> {
-                    HashMap<String, Character> characterData = server.getCharacterDatas();
-                    Constants.LOGGER.info("Character validation - found " + characterData.size() + " characters");
-                    if (characterData.isEmpty()) {
-                        Constants.LOGGER.warn("No characters found for roleplay creation in server: " + event.getGuild().getName());
-                        event.reply("Must at least have one character created in the bot in order to start a roleplay!").setEphemeral(true).queue();
+                    Constants.LOGGER.info("CREATE ROLEPLAY BUTTON CLICKED - Starting validation for server: " + event.getGuild().getName());
+                    try {
+                        HashMap<String, Character> characterData = server.getCharacterDatas();
+                        Constants.LOGGER.info("Character validation - found " + characterData.size() + " characters");
+                        if (characterData.isEmpty()) {
+                            Constants.LOGGER.warn("No characters found for roleplay creation in server: " + event.getGuild().getName());
+                            event.reply("Must at least have one character created in the bot in order to start a roleplay!").setEphemeral(true).queue();
+                            return;
+                        }
+                        Constants.LOGGER.info("Character validation passed, proceeding with roleplay creation");
+                    } catch (Exception e) {
+                        Constants.LOGGER.error("Error during character validation", e);
+                        event.reply("An error occurred during character validation: " + e.getMessage()).setEphemeral(true).queue();
                         return;
                     }
 
