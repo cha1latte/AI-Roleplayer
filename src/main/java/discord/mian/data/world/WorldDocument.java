@@ -9,16 +9,16 @@ public class WorldDocument extends AIDocument {
     private String prompt;
 
     public WorldDocument() {
-        setType(PromptType.WORLD.displayName.toLowerCase());
+        setType("worlds");
     }
 
     public WorldDocument(String name, long server) {
         super(name, server);
-        setType(PromptType.WORLD.displayName.toLowerCase());
+        setType("worlds");
     }
 
     public WorldDocument(String name, long server, String prompt) {
         super(name, server, prompt);
-        setType(PromptType.WORLD.displayName.toLowerCase());
+        setType("worlds");
     }
 }

@@ -9,16 +9,16 @@ public class InstructionDocument extends AIDocument {
     private String prompt;
 
     public InstructionDocument() {
-        setType(PromptType.INSTRUCTION.displayName.toLowerCase());
+        setType("instructions");
     }
 
     public InstructionDocument(String name, long server) {
         super(name, server);
-        setType(PromptType.INSTRUCTION.displayName.toLowerCase());
+        setType("instructions");
     }
 
     public InstructionDocument(String name, long server, String prompt) {
         super(name, server, prompt);
-        setType(PromptType.INSTRUCTION.displayName.toLowerCase());
+        setType("instructions");
     }
 }

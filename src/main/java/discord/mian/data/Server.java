@@ -400,7 +400,7 @@ public class Server {
         try {
             // Fix type inconsistencies in the database
             // Update "system prompts" to "instructions" for system prompts
-            int updatedInstructions = Util.DATABASE.getCollection("prompt")
+            long updatedInstructions = Util.DATABASE.getCollection("prompt")
                     .updateMany(
                             Filters.and(
                                     Filters.eq("server", serverId),
@@ -410,7 +410,7 @@ public class Server {
                     ).getModifiedCount();
             
             // Update "personas" to "worlds" for world prompts  
-            int updatedWorlds = Util.DATABASE.getCollection("prompt")
+            long updatedWorlds = Util.DATABASE.getCollection("prompt")
                     .updateMany(
                             Filters.and(
                                     Filters.eq("server", serverId),

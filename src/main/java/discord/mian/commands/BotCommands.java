@@ -22,7 +22,8 @@ public class BotCommands {
             new ChangeAvatar(),
             new EditModelProperties(),
             new ChangeAIProvider(),
-            new Help()
+            new Help(),
+            new RestorePokemon()
     );
 
     public static CommandListUpdateAction addCommands() {

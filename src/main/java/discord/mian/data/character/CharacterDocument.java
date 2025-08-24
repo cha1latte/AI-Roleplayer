@@ -12,19 +12,19 @@ public class CharacterDocument extends AIDocument {
     private String startingMessage;
 
     public CharacterDocument() {
-        setType(PromptType.CHARACTER.displayName.toLowerCase());
+        setType("characters");
         talkability = 0.5;
     }
 
     public CharacterDocument(String name, long server) {
         super(name, server);
-        setType(PromptType.CHARACTER.displayName.toLowerCase());
+        setType("characters");
         talkability = 0.5;
     }
 
     public CharacterDocument(String name, long server, String avatar, double talkability, String prompt) {
         super(name, server, prompt);
-        setType(PromptType.CHARACTER.displayName.toLowerCase());
+        setType("characters");
         this.avatar = avatar;
         this.talkability = talkability;
     }
