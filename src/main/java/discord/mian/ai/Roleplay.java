@@ -1149,6 +1149,9 @@ public class Roleplay {
                     .toList();
             Constants.LOGGER.info("Total available characters after restoration: " + availableCharacters.size());
             
+            // Identify which character was being used in this thread
+            identifyActiveCharacterFromHistory(threadChannel);
+            
             // Restore webhook for the thread
             Constants.LOGGER.info("Restoring webhook for thread...");
             restoreWebhookForThread(threadChannel);
@@ -1199,6 +1202,33 @@ public class Roleplay {
                     );
         }, error -> {
             Constants.LOGGER.error("Failed to retrieve webhooks for thread restoration", error);
+        });
+    }
+    
+    private void identifyActiveCharacterFromHistory(ThreadChannel threadChannel) {
+        Constants.LOGGER.info("Analyzing thread history to identify active character...");
+        
+        // Look at the recent messages in the thread to find webhook messages from characters
+        threadChannel.getIterableHistory().limit(50).queue(messages -> {
+            for (Message message : messages) {
+                if (message.isWebhookMessage()) {
+                    String authorName = message.getAuthor().getName();
+                    Constants.LOGGER.info("Found webhook message from: " + authorName);
+                    
+                    // Check if this author name matches any of our characters
+                    Character matchingCharacter = characters.get(authorName);
+                    if (matchingCharacter != null) {
+                        this.currentCharacter = matchingCharacter;
+                        Constants.LOGGER.info("Identified active character from history: " + matchingCharacter.getName());
+                        return;
+                    }
+                }
+            }
+            
+            // If no character found in history, log it
+            Constants.LOGGER.info("No active character identified from thread history");
+        }, error -> {
+            Constants.LOGGER.error("Failed to retrieve thread history for character identification", error);
         });
     }
 }

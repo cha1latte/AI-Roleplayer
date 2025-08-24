@@ -219,38 +219,30 @@ public class Listener {
                         Constants.LOGGER.info("No specific character found, only_chat_on_mention: " + onlyMention);
                         
                         if (!onlyMention) {
-                            Constants.LOGGER.info("Getting all characters for general response");
-                            // Always respond instead of 50% chance
-                            List<Character> allCharacters = roleplay.getDatas(PromptType.CHARACTER).stream()
-                                    .map(data1 -> (Character) data1)
-                                    .filter(data1 -> !data1.getName().equals(event.getAuthor().getName()))
-                                    .toList();
+                            // Check if there's a current character from the original roleplay
+                            Character currentCharacter = roleplay.getCurrentCharacter();
                             
-                            Constants.LOGGER.info("Found " + allCharacters.size() + " available characters");
-                            
-                            if (!allCharacters.isEmpty()) {
-                                final double total = allCharacters.stream()
-                                        .mapToDouble(character -> character.getDocument().getTalkability()).sum();
-                                Constants.LOGGER.info("Total talkability: " + total);
-
-                                double percentage = Math.random();
-                                Constants.LOGGER.info("Random percentage for character selection: " + percentage);
-                                
-                                List<Character> meetsCriteria = allCharacters.stream()
-                                        .filter(characterData -> (characterData.getDocument().getTalkability() / total) >= percentage)
+                            if (currentCharacter != null && !currentCharacter.getName().equals(event.getAuthor().getName())) {
+                                Constants.LOGGER.info("Using current character from roleplay: " + currentCharacter.getName());
+                                roleplay.promptCharacterToRoleplay(currentCharacter, msg, true);
+                            } else {
+                                Constants.LOGGER.info("No current character set, falling back to general character selection");
+                                // Fallback: use any available character if no current character is set
+                                List<Character> allCharacters = roleplay.getDatas(PromptType.CHARACTER).stream()
+                                        .map(data1 -> (Character) data1)
+                                        .filter(data1 -> !data1.getName().equals(event.getAuthor().getName()))
                                         .toList();
                                 
-                                Constants.LOGGER.info("Characters meeting criteria: " + meetsCriteria.size());
-
-                                if (!meetsCriteria.isEmpty()) {
-                                    Character selectedCharacter = meetsCriteria.get((int) (Math.random() * meetsCriteria.size()));
-                                    Constants.LOGGER.info("Selected character: " + selectedCharacter.getName() + ", calling promptCharacterToRoleplay");
+                                Constants.LOGGER.info("Found " + allCharacters.size() + " available characters for fallback");
+                                
+                                if (!allCharacters.isEmpty()) {
+                                    // Just pick the first available character instead of complex random selection
+                                    Character selectedCharacter = allCharacters.get(0);
+                                    Constants.LOGGER.info("Selected fallback character: " + selectedCharacter.getName() + ", calling promptCharacterToRoleplay");
                                     roleplay.promptCharacterToRoleplay(selectedCharacter, msg, true);
                                 } else {
-                                    Constants.LOGGER.info("No characters met criteria for response");
+                                    Constants.LOGGER.info("No characters available for response");
                                 }
-                            } else {
-                                Constants.LOGGER.info("No characters available for response");
                             }
                         } else {
                             Constants.LOGGER.info("only_chat_on_mention is true, not responding to general message");
