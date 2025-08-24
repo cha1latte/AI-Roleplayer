@@ -619,14 +619,22 @@ public class Roleplay {
         }
         this.failedResponseInfo = null;
         if (this.latestAssistantMessage != null) {
-            if (latestAssistantMessage.getContentRaw().isEmpty())
-                latestAssistantMessage.delete().queue();
-            else
-                latestAssistantMessage.editMessageComponents(ActionRow.of(Button.danger("destroy_button", Emoji.fromFormatted("🗑")),
-                                Button.primary("edit_button", Emoji.fromFormatted("✏️"))))
-                        .queue(RestAction.getDefaultSuccess(),
-                                (t) -> {
-                                });
+            // Only try to edit/delete the message if it was sent by the current bot instance
+            boolean canEditMessage = latestAssistantMessage.getAuthor().equals(AIBot.bot.getJDA().getSelfUser()) ||
+                                   latestAssistantMessage.isWebhookMessage(); // We control webhooks in our threads
+            
+            if (canEditMessage) {
+                if (latestAssistantMessage.getContentRaw().isEmpty())
+                    latestAssistantMessage.delete().queue();
+                else
+                    latestAssistantMessage.editMessageComponents(ActionRow.of(Button.danger("destroy_button", Emoji.fromFormatted("🗑")),
+                                    Button.primary("edit_button", Emoji.fromFormatted("✏️"))))
+                            .queue(RestAction.getDefaultSuccess(),
+                                    (t) -> {
+                                    });
+            } else {
+                Constants.LOGGER.info("Skipping message edit - message was sent by different bot instance");
+            }
             latestAssistantMessage = null;
             swipes = null;
             currentSwipe = 0;
