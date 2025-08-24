@@ -1331,8 +1331,12 @@ public class Roleplay {
                 Constants.LOGGER.info("Skipping latestAssistantMessage restoration - conditions not met");
             }
             
+            Constants.LOGGER.info("About to complete character identification method");
+            
             if (this.currentCharacter == null) {
                 Constants.LOGGER.info("No active character identified from thread history (sync)");
+            } else {
+                Constants.LOGGER.info("Character identification completed successfully: " + this.currentCharacter.getName());
             }
         } catch (Exception e) {
             Constants.LOGGER.error("Failed to retrieve thread history for character identification (sync)", e);
