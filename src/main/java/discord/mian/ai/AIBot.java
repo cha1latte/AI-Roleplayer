@@ -20,6 +20,7 @@ public class AIBot {
 
     private final Map<Guild, Roleplay> chats;
     private final Map<Guild, Server> servers;
+    private boolean pokemonCleanupDone = false;
 
     public AIBot(JDA jda) throws Exception {
         if (bot != null)
@@ -50,15 +51,6 @@ public class AIBot {
             }
         }
         
-        // One-time cleanup: Remove all non-Pokemon content from all servers
-        Constants.LOGGER.info("Performing one-time cleanup of non-Pokemon content...");
-        for (Guild guild : jda.getGuildCache()) {
-            try {
-                getServerData(guild).cleanupNonPokemonContent();
-            } catch (Exception e) {
-                Constants.LOGGER.error("Failed to cleanup non-Pokemon content for guild: " + guild.getName(), e);
-            }
-        }
     }
 
     public JDA getJDA() {
@@ -73,6 +65,22 @@ public class AIBot {
     }
 
     public Server getServerData(Guild guild) {
+        // One-time cleanup of non-Pokemon content on first server access
+        if (!pokemonCleanupDone) {
+            Constants.LOGGER.info("Performing one-time cleanup of non-Pokemon content...");
+            for (Guild g : jda.getGuildCache()) {
+                try {
+                    Server server = servers.get(g);
+                    if (server != null) {
+                        server.cleanupNonPokemonContent();
+                    }
+                } catch (Exception e) {
+                    Constants.LOGGER.error("Failed to cleanup non-Pokemon content for guild: " + g.getName(), e);
+                }
+            }
+            pokemonCleanupDone = true;
+            Constants.LOGGER.info("Pokemon cleanup completed for all servers");
+        }
         return servers.get(guild);
     }
 
