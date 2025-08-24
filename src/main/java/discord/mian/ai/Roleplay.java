@@ -1239,6 +1239,8 @@ public class Roleplay {
             // Get messages synchronously
             List<Message> messages = threadChannel.getIterableHistory().limit(50).complete();
             
+            Message mostRecentBotMessage = null;
+            
             for (Message message : messages) {
                 if (message.isWebhookMessage()) {
                     String authorName = message.getAuthor().getName();
@@ -1248,13 +1250,26 @@ public class Roleplay {
                     Character matchingCharacter = characters.get(authorName);
                     if (matchingCharacter != null) {
                         this.currentCharacter = matchingCharacter;
+                        
+                        // Keep track of the most recent bot message for this character
+                        if (mostRecentBotMessage == null) {
+                            mostRecentBotMessage = message;
+                        }
+                        
                         Constants.LOGGER.info("Identified active character from history (sync): " + matchingCharacter.getName());
-                        return;
                     }
                 }
             }
             
-            Constants.LOGGER.info("No active character identified from thread history (sync)");
+            // Restore the latest assistant message to prevent sending starting message
+            if (mostRecentBotMessage != null && this.currentCharacter != null) {
+                this.latestAssistantMessage = mostRecentBotMessage;
+                Constants.LOGGER.info("Restored latestAssistantMessage from history to prevent starting message");
+            }
+            
+            if (this.currentCharacter == null) {
+                Constants.LOGGER.info("No active character identified from thread history (sync)");
+            }
         } catch (Exception e) {
             Constants.LOGGER.error("Failed to retrieve thread history for character identification (sync)", e);
         }
