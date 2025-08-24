@@ -720,6 +720,9 @@ public class Interactions {
                         modal.deferEdit().queue();
 
                         String name = modal.getValue("name").getAsString();
+                        if (name == null || name.trim().isEmpty()) {
+                            name = "Roleplay";
+                        }
 
                         HashMap<PromptType, ArrayList<String>> datas = new HashMap<>();
                         datas.put(PromptType.INSTRUCTION, new ArrayList<>());
@@ -829,8 +832,7 @@ public class Interactions {
                         nextPromptType.accept(0);
                     }).addComponents(ActionRow.of(
                             TextInput.create("name", "Name", TextInputStyle.SHORT)
-                                    .setRequired(true)
-                                    .setPlaceholder("A very sussy roleplay")
+                                    .setRequired(false)
                                     .build()
                     )).build()).queue();
                 }).withEmoji(Emoji.fromFormatted("✏️"))
@@ -861,6 +863,9 @@ public class Interactions {
                     }
                     event.replyModal(InteractionCreator.createModal("Name Roleplay", modal -> {
                         String name = modal.getValue("name").getAsString();
+                        if (name == null || name.trim().isEmpty()) {
+                            name = "Roleplay";
+                        }
 
                         try {
                             roleplay.startRoleplay(
@@ -877,8 +882,7 @@ public class Interactions {
                         }
                     }).addComponents(ActionRow.of(
                             TextInput.create("name", "Name", TextInputStyle.SHORT)
-                                    .setRequired(true)
-                                    .setPlaceholder("A very sussy roleplay")
+                                    .setRequired(false)
                                     .build()
                     )).build()).queue();
                 }).withStyle(ButtonStyle.SECONDARY).withEmoji(Emoji.fromFormatted("⏪"))
