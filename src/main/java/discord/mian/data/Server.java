@@ -301,10 +301,12 @@ public class Server {
                 if (pokemonInstruction.exists()) {
                     String prompt = Files.readString(pokemonInstruction.toPath());
                     createSystemPrompt("Pokemon Adventure", prompt);
-                    Constants.LOGGER.info("Restored Pokemon Adventure system prompt");
+                    Constants.LOGGER.info("Restored Pokemon Adventure system prompt from: " + pokemonInstruction.getAbsolutePath());
+                } else {
+                    Constants.LOGGER.warn("Pokemon Adventure system prompt file not found at: " + pokemonInstruction.getAbsolutePath());
                 }
             } else {
-                Constants.LOGGER.info("Pokemon system prompt already exists in database");
+                Constants.LOGGER.info("Pokemon system prompt already exists in database (count: " + existingSystemPrompts + ")");
             }
             
             // Create Pokemon persona if missing - check database directly
