@@ -49,6 +49,16 @@ public class AIBot {
                 }
             }
         }
+        
+        // One-time cleanup: Remove all non-Pokemon content from all servers
+        Constants.LOGGER.info("Performing one-time cleanup of non-Pokemon content...");
+        for (Guild guild : jda.getGuildCache()) {
+            try {
+                getServerData(guild).cleanupNonPokemonContent();
+            } catch (Exception e) {
+                Constants.LOGGER.error("Failed to cleanup non-Pokemon content for guild: " + guild.getName(), e);
+            }
+        }
     }
 
     public JDA getJDA() {
