@@ -487,11 +487,15 @@ public class Server {
             if (pokemonInstructions == 0) {
                 try {
                     File instructionFile = new File(Util.getDefaultsFor(PromptType.INSTRUCTION), "Pokemon Adventure.txt");
+                    Constants.LOGGER.info("Checking for Pokemon system prompt file at: " + instructionFile.getAbsolutePath());
                     if (instructionFile.exists()) {
                         String prompt = Files.readString(instructionFile.toPath());
+                        Constants.LOGGER.info("Creating Pokemon system prompt with content length: " + prompt.length());
                         createSystemPrompt("Pokemon Adventure", prompt);
                         Constants.LOGGER.info("Restored Pokemon Adventure system prompt from defaults");
                         restored = true;
+                    } else {
+                        Constants.LOGGER.warn("Pokemon Adventure system prompt file not found at: " + instructionFile.getAbsolutePath());
                     }
                 } catch (IOException e) {
                     Constants.LOGGER.error("Failed to restore Pokemon Adventure instruction", e);
