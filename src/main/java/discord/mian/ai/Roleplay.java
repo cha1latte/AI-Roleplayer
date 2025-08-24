@@ -1304,8 +1304,14 @@ public class Roleplay {
             }
             
             // Restore the latest assistant message to prevent sending starting message
-            // But only if it was sent by the current bot instance (to avoid IllegalStateException)
+            Constants.LOGGER.info("mostRecentBotMessage: " + (mostRecentBotMessage != null ? "exists" : "null"));
+            Constants.LOGGER.info("currentCharacter: " + (this.currentCharacter != null ? this.currentCharacter.getName() : "null"));
+            
             if (mostRecentBotMessage != null && this.currentCharacter != null) {
+                Constants.LOGGER.info("mostRecentBotMessage author: " + mostRecentBotMessage.getAuthor().getName() + " (ID: " + mostRecentBotMessage.getAuthor().getIdLong() + ")");
+                Constants.LOGGER.info("Bot self user: " + AIBot.bot.getJDA().getSelfUser().getName() + " (ID: " + AIBot.bot.getJDA().getSelfUser().getIdLong() + ")");
+                Constants.LOGGER.info("Is webhook message: " + mostRecentBotMessage.isWebhookMessage());
+                
                 if (mostRecentBotMessage.getAuthor().equals(AIBot.bot.getJDA().getSelfUser())) {
                     this.latestAssistantMessage = mostRecentBotMessage;
                     Constants.LOGGER.info("Restored latestAssistantMessage from history to prevent starting message");
