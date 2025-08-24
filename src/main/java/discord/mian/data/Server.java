@@ -485,6 +485,7 @@ public class Server {
             boolean restored = false;
             
             if (pokemonInstructions == 0) {
+                Constants.LOGGER.info("Pokemon system prompt missing, attempting to restore...");
                 try {
                     File instructionFile = new File(Util.getDefaultsFor(PromptType.INSTRUCTION), "Pokemon Adventure.txt");
                     Constants.LOGGER.info("Checking for Pokemon system prompt file at: " + instructionFile.getAbsolutePath());
@@ -492,14 +493,45 @@ public class Server {
                         String prompt = Files.readString(instructionFile.toPath());
                         Constants.LOGGER.info("Creating Pokemon system prompt with content length: " + prompt.length());
                         createSystemPrompt("Pokemon Adventure", prompt);
-                        Constants.LOGGER.info("Restored Pokemon Adventure system prompt from defaults");
+                        Constants.LOGGER.info("Successfully restored Pokemon Adventure system prompt from defaults");
                         restored = true;
+                        
+                        // Verify it was created
+                        long verifyCount = Util.DATABASE.getCollection("prompt")
+                                .countDocuments(Filters.and(
+                                        Filters.eq("server", serverId),
+                                        Filters.or(
+                                                Filters.eq("type", "instructions"),
+                                                Filters.eq("type", "system prompts")
+                                        ),
+                                        Filters.regex("name", "(?i)pokemon.*adventure")
+                                ));
+                        Constants.LOGGER.info("Verification: Pokemon system prompts now in database: " + verifyCount);
+                        
                     } else {
                         Constants.LOGGER.warn("Pokemon Adventure system prompt file not found at: " + instructionFile.getAbsolutePath());
+                        
+                        // Try to create from hardcoded backup content
+                        String backupPrompt = "You are the GM for a Pokémon text adventure RPG. The user plays as their trainer while you control the world, NPCs, wild Pokémon, and all game mechanics.";
+                        createSystemPrompt("Pokemon Adventure", backupPrompt);
+                        Constants.LOGGER.info("Created Pokemon Adventure system prompt from backup content");
+                        restored = true;
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     Constants.LOGGER.error("Failed to restore Pokemon Adventure instruction", e);
+                    
+                    // Last resort - create with minimal content
+                    try {
+                        String minimalPrompt = "Pokemon adventure system prompt";
+                        createSystemPrompt("Pokemon Adventure", minimalPrompt);
+                        Constants.LOGGER.info("Created minimal Pokemon Adventure system prompt as fallback");
+                        restored = true;
+                    } catch (Exception fallbackException) {
+                        Constants.LOGGER.error("Even fallback creation failed", fallbackException);
+                    }
                 }
+            } else {
+                Constants.LOGGER.info("Pokemon system prompt already exists, skipping creation");
             }
             
             if (pokemonWorlds == 0) {
