@@ -777,7 +777,7 @@ public class Interactions {
                                                     promptType,
                                                     direction, enabledData), givenMsg, promptType, false, true,
                                             selects, null, 90L, InteractionCreator.createButton(Emoji.fromFormatted("✅"), buttonEvent -> {
-                                                if (datas.get(promptType).isEmpty()) {
+                                                if (datas.get(promptType).isEmpty() && promptType != PromptType.INSTRUCTION) {
                                                     buttonEvent.reply("Need at least one set of " + display + "!").setEphemeral(true).queue();
                                                     return;
                                                 }
