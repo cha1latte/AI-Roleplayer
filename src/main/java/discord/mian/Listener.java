@@ -207,8 +207,14 @@ public class Listener {
                     roleplay.promptCharacterToRoleplay(fromContent, msg, true);
                 } else {
                     Constants.LOGGER.info("No character from content, checking findRespondingCharacterFromMessage");
-                    Character data = roleplay.findRespondingCharacterFromMessage(msg);
-                    Constants.LOGGER.info("findRespondingCharacterFromMessage result: " + (data != null ? data.getName() : "null"));
+                    Character data = null;
+                    try {
+                        data = roleplay.findRespondingCharacterFromMessage(msg);
+                        Constants.LOGGER.info("findRespondingCharacterFromMessage result: " + (data != null ? data.getName() : "null"));
+                    } catch (Exception e) {
+                        Constants.LOGGER.error("Exception in findRespondingCharacterFromMessage", e);
+                        throw e;
+                    }
                     
                     if (data != null && !data.getName().equals(event.getAuthor().getName())) {
                         Constants.LOGGER.info("Found character from message: " + data.getName() + ", prompting to roleplay");
