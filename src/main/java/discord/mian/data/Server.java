@@ -231,15 +231,23 @@ public class Server {
     }
 
     public HashMap<String, Character> getCharacterDatas() {
+        Constants.LOGGER.info("Loading character data for server: " + guild.getName());
+        String expectedType = PromptType.CHARACTER.displayName.toLowerCase();
+        Constants.LOGGER.info("Looking for characters with type: " + expectedType);
+        
         try (MongoCursor<CharacterDocument> cursor = Util.DATABASE.getCollection("prompt", CharacterDocument.class)
                 .find(Filters.and(
                         Filters.eq("server", guild.getIdLong()),
-                        Filters.eq("type", PromptType.CHARACTER.displayName.toLowerCase()))
+                        Filters.eq("type", expectedType))
                 ).iterator()) {
+            int foundCount = 0;
             while (cursor.hasNext()) {
                 CharacterDocument document = cursor.next();
+                Constants.LOGGER.info("Found character: " + document.getName() + " with type: " + document.getType());
                 characterDatas.putIfAbsent(document.getName(), new Character(document));
+                foundCount++;
             }
+            Constants.LOGGER.info("Loaded " + foundCount + " characters from database. Cache now contains: " + characterDatas.size());
         }
 
         return characterDatas;

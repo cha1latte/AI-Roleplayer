@@ -706,7 +706,10 @@ public class Interactions {
         ArrayList<Button> roleplayComponents = new ArrayList<>();
 
         roleplayComponents.add(InteractionCreator.createButton("Create Roleplay", (event) -> {
-                    if (server.getCharacterDatas().isEmpty()) {
+                    HashMap<String, Character> characterData = server.getCharacterDatas();
+                    Constants.LOGGER.info("Character validation - found " + characterData.size() + " characters");
+                    if (characterData.isEmpty()) {
+                        Constants.LOGGER.warn("No characters found for roleplay creation in server: " + event.getGuild().getName());
                         event.reply("Must at least have one character created in the bot in order to start a roleplay!").setEphemeral(true).queue();
                         return;
                     }
