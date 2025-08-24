@@ -59,7 +59,14 @@ public class Server {
             for (PromptType promptType : PromptType.values()) {
                 File defaults = Util.getDefaultsFor(promptType);
 
-                Arrays.stream(Objects.requireNonNull(defaults.listFiles())).forEach(file -> {
+                if (!defaults.exists()) {
+                    Constants.LOGGER.warn("Defaults directory does not exist: " + defaults.getPath());
+                    continue;
+                }
+
+                File[] files = defaults.listFiles();
+                if (files != null) {
+                    Arrays.stream(files).forEach(file -> {
                     try {
                         if (promptType == PromptType.CHARACTER) {
                             ObjectMapper mapper = new ObjectMapper();
@@ -87,6 +94,7 @@ public class Server {
                         throw new RuntimeException(e);
                     }
                 });
+                }
             }
         }
         cursor.close();
