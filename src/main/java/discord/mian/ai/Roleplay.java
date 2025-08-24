@@ -1304,6 +1304,8 @@ public class Roleplay {
             }
             
             // Restore the latest assistant message to prevent sending starting message
+            Constants.LOGGER.info("About to check restoration conditions - mostRecentBotMessage: " + (mostRecentBotMessage != null ? "exists" : "null") + ", currentCharacter: " + (this.currentCharacter != null ? this.currentCharacter.getName() : "null"));
+            
             if (mostRecentBotMessage != null && this.currentCharacter != null) {
                 // For webhook messages, we can't check the author since webhooks have different authors
                 // Instead, we assume that if we successfully restored the webhook for this thread,
@@ -1317,6 +1319,8 @@ public class Roleplay {
                 } else {
                     Constants.LOGGER.info("Skipping latestAssistantMessage restoration - message was sent by different bot instance");
                 }
+            } else {
+                Constants.LOGGER.info("Skipping latestAssistantMessage restoration - conditions not met");
             }
             
             if (this.currentCharacter == null) {

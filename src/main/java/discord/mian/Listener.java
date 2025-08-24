@@ -224,7 +224,12 @@ public class Listener {
                             
                             if (currentCharacter != null && !currentCharacter.getName().equals(event.getAuthor().getName())) {
                                 Constants.LOGGER.info("Using current character from roleplay: " + currentCharacter.getName());
-                                roleplay.promptCharacterToRoleplay(currentCharacter, msg, true);
+                                try {
+                                    roleplay.promptCharacterToRoleplay(currentCharacter, msg, true);
+                                } catch (Exception e) {
+                                    Constants.LOGGER.error("Exception in promptCharacterToRoleplay", e);
+                                    throw e;
+                                }
                             } else {
                                 Constants.LOGGER.info("No current character set, falling back to general character selection");
                                 // Fallback: use any available character if no current character is set
