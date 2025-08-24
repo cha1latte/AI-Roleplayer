@@ -28,14 +28,14 @@ import java.util.function.Consumer;
 
 public class Server {
     private final HashMap<String, Character> characterDatas;
-    private final HashMap<String, Instruction> instructionDatas;
+    private final HashMap<String, Instruction> systemPromptDatas;
     private final HashMap<String, World> personaDatas;
     private final Guild guild;
 
     public Server(Guild guild) {
         this.guild = guild;
         this.characterDatas = new HashMap<>();
-        this.instructionDatas = new HashMap<>();
+        this.systemPromptDatas = new HashMap<>();
         this.personaDatas = new HashMap<>();
 
         saveConfig(generateConfig(getConfig())); // generates the config and missing values if they do not exist
@@ -79,7 +79,7 @@ public class Server {
                             name = name.substring(0, name.lastIndexOf("."));
 
                             if (promptType == PromptType.INSTRUCTION)
-                                createInstruction(name, prompt);
+                                createSystemPrompt(name, prompt);
                             else
                                 createPersona(name, prompt);
                         }
@@ -181,7 +181,7 @@ public class Server {
 
     public HashMap<String, ? extends Data<?>> getDatas(PromptType promptType) {
         return switch (promptType) {
-            case INSTRUCTION -> getInstructionDatas();
+            case INSTRUCTION -> getSystemPromptDatas();
             case CHARACTER -> getCharacterDatas();
             case WORLD -> getPersonaDatas();
         };
@@ -191,7 +191,7 @@ public class Server {
         try (MongoCursor<WorldDocument> cursor = Util.DATABASE.getCollection("prompt", WorldDocument.class)
                 .find(Filters.and(
                         Filters.eq("server", guild.getIdLong()),
-                        Filters.eq("type", PromptType.WORLD.displayName.toLowerCase()))).iterator()) {
+                        Filters.eq("type", "worlds"))).iterator()) {
             while (cursor.hasNext()) {
                 WorldDocument document = cursor.next();
                 personaDatas.putIfAbsent(document.getName(), new World(document));
@@ -201,18 +201,18 @@ public class Server {
         return personaDatas;
     }
 
-    public HashMap<String, Instruction> getInstructionDatas() {
+    public HashMap<String, Instruction> getSystemPromptDatas() {
         try (MongoCursor<InstructionDocument> cursor = Util.DATABASE.getCollection("prompt", InstructionDocument.class)
                 .find(Filters.and(
                         Filters.eq("server", guild.getIdLong()),
-                        Filters.eq("type", PromptType.INSTRUCTION.displayName.toLowerCase()))).iterator()) {
+                        Filters.eq("type", "instructions"))).iterator()) {
             while (cursor.hasNext()) {
                 InstructionDocument document = cursor.next();
-                instructionDatas.putIfAbsent(document.getName(), new Instruction(document));
+                systemPromptDatas.putIfAbsent(document.getName(), new Instruction(document));
             }
         }
 
-        return instructionDatas;
+        return systemPromptDatas;
     }
 
     public HashMap<String, Character> getCharacterDatas() {
@@ -250,11 +250,11 @@ public class Server {
         characterDatas.putIfAbsent(name, data);
     }
 
-    public void createInstruction(String name, String prompt) throws MongoException {
+    public void createSystemPrompt(String name, String prompt) throws MongoException {
         Instruction data = new Instruction(new InstructionDocument(name, guild.getIdLong()));
         data.updateDocument(document -> document.setPrompt(prompt));
 
-        instructionDatas.putIfAbsent(name, data);
+        systemPromptDatas.putIfAbsent(name, data);
     }
 
     public void createPersona(String name, String prompt) throws MongoException {

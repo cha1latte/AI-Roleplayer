@@ -84,7 +84,7 @@ public class Roleplay {
     private final EncodingRegistry registry;
 
     // make possible to swipe messages
-    private final HashMap<String, Instruction> instructions;
+    private final HashMap<String, Instruction> systemPrompts;
     private final HashMap<String, World> personaLore;
     private final HashMap<String, Character> characters;
     private Character currentCharacter;
@@ -112,7 +112,7 @@ public class Roleplay {
         this.registry = Encodings.newDefaultEncodingRegistry();
         this.guild = guild;
 
-        instructions = new HashMap<>();
+        systemPrompts = new HashMap<>();
         personaLore = new HashMap<>();
         characters = new HashMap<>();
     }
@@ -803,17 +803,17 @@ public class Roleplay {
         ArrayList<ChatMessage> messages = new ArrayList<>();
 
         if (character != null) {
-            StringBuilder instructionsMessage = new StringBuilder();
-            instructionsMessage.append("Follow the instructions below! You are participating in a roleplay with other users!\n");
-            instructionsMessage.append("This is a chatbot roleplay. You are roleplaying with other users, your responses should only be a few sentences long, should incorporate humor and shouldn't be too serious. The only time this can be overridden is if later instructions conflict with these. \nKeep responses within a few sentences!\nDo not escape newlines or quotes in your response. Respond with actual characters, not \\\\n or \\\\\\\". Discord will display it properly.\n");
-            instructionsMessage.append("Each user message has a name field. Use this to determine who is speaking and maintain consistency");
-            instructionsMessage.append("Do not include the character name in your response, this is already provided programmatically by the code.\n");
+            StringBuilder systemPromptsMessage = new StringBuilder();
+            systemPromptsMessage.append("Follow the system prompts below! You are participating in a roleplay with other users!\n");
+            systemPromptsMessage.append("This is a chatbot roleplay. You are roleplaying with other users, your responses should only be a few sentences long, should incorporate humor and shouldn't be too serious. The only time this can be overridden is if later system prompts conflict with these. \nKeep responses within a few sentences!\nDo not escape newlines or quotes in your response. Respond with actual characters, not \\\\n or \\\\\\\". Discord will display it properly.\n");
+            systemPromptsMessage.append("Each user message has a name field. Use this to determine who is speaking and maintain consistency");
+            systemPromptsMessage.append("Do not include the character name in your response, this is already provided programmatically by the code.\n");
 
-            for (Instruction instruction : instructions.values()) {
-                instructionsMessage.append(instruction.getChatMessage(character).getContent()).append("\n");
+            for (Instruction systemPrompt : systemPrompts.values()) {
+                systemPromptsMessage.append(systemPrompt.getChatMessage(character).getContent()).append("\n");
             }
 
-            messages.add(ChatMessage.SystemMessage.of(instructionsMessage.toString(), "Instructions"));
+            messages.add(ChatMessage.SystemMessage.of(systemPromptsMessage.toString(), "System Prompts"));
 
             StringBuilder combinedLore = new StringBuilder();
             combinedLore.append("The following is lore and information about the persona that this roleplay takes place in!");
@@ -869,13 +869,13 @@ public class Roleplay {
 
     public void startRoleplay(IReplyCallback event,
                               String rpName,
-                              List<Instruction> instructionList,
+                              List<Instruction> systemPromptList,
                               List<World> personas,
                               List<Character> characterList,
                               Consumer<Webhook> onSuccess
     ) throws ExecutionException, InterruptedException, IOException {
-        if (instructionList.size() <= 0)
-            throw new RuntimeException("Need at least one set of instructions!");
+        if (systemPromptList.size() <= 0)
+            throw new RuntimeException("Need at least one set of system prompts!");
         if (personas.size() <= 0)
             throw new RuntimeException("Need at least one set of persona lore!");
 
@@ -893,7 +893,7 @@ public class Roleplay {
 
             Function<PromptType, List<? extends Data>> getDatas = (promptType) ->
                     switch (promptType) {
-                        case INSTRUCTION -> instructionList;
+                        case INSTRUCTION -> systemPromptList;
                         case WORLD -> personas;
                         case CHARACTER -> characterList;
                     };
@@ -947,7 +947,7 @@ public class Roleplay {
             this.currentSwipe = 0;
 
             this.characters.clear();
-            this.instructions.clear();
+            this.systemPrompts.clear();
             this.personaLore.clear();
             this.queuedResponses.clear();
 
@@ -1054,7 +1054,7 @@ public class Roleplay {
         swipes = null;
         currentSwipe = 0;
         characters.clear();
-        instructions.clear();
+        systemPrompts.clear();
         personaLore.clear();
         queuedResponses.clear();
     }
@@ -1120,8 +1120,8 @@ public class Roleplay {
         return personaLore;
     }
 
-    private HashMap<String, Instruction> getInstructions() {
-        return instructions;
+    private HashMap<String, Instruction> getSystemPrompts() {
+        return systemPrompts;
     }
 
     private HashMap<String, Character> getCharacters() {
@@ -1132,7 +1132,7 @@ public class Roleplay {
         return switch (promptType) {
             case CHARACTER -> getCharacters().values().stream().toList();
             case WORLD -> getPersonas().values().stream().toList();
-            case INSTRUCTION -> getInstructions().values().stream().toList();
+            case INSTRUCTION -> getSystemPrompts().values().stream().toList();
         };
     }
 
@@ -1165,7 +1165,7 @@ public class Roleplay {
                 currentCharacter = (Character) data;
             }
             case WORLD -> personaLore.putIfAbsent(data.getName(), (World) data);
-            case INSTRUCTION -> instructions.putIfAbsent(data.getName(), (Instruction) data);
+            case INSTRUCTION -> systemPrompts.putIfAbsent(data.getName(), (Instruction) data);
         }
     }
 
@@ -1176,8 +1176,8 @@ public class Roleplay {
             this.runningRoleplay = true;
             Constants.LOGGER.info("Restored roleplay state from thread: " + threadChannel.getName() + " in guild: " + guild.getName());
             
-            // Restore all available characters, personas, and instructions from server data
-            Constants.LOGGER.info("Restoring characters, personas, and instructions from server data...");
+            // Restore all available characters, personas, and system prompts from server data
+            Constants.LOGGER.info("Restoring characters, personas, and system prompts from server data...");
             
             // Add all available characters
             server.getCharacterDatas().values().forEach(characterData -> {
@@ -1192,10 +1192,10 @@ public class Roleplay {
                 Constants.LOGGER.info("Restored persona: " + personaData.getName());
             });
             
-            // Add all available instructions
-            server.getInstructionDatas().values().forEach(instructionData -> {
-                instructions.putIfAbsent(instructionData.getName(), (Instruction) instructionData);
-                Constants.LOGGER.info("Restored instruction: " + instructionData.getName());
+            // Add all available system prompts
+            server.getSystemPromptDatas().values().forEach(systemPromptData -> {
+                systemPrompts.putIfAbsent(systemPromptData.getName(), (Instruction) systemPromptData);
+                Constants.LOGGER.info("Restored system prompt: " + systemPromptData.getName());
             });
             
             // Log final character availability
