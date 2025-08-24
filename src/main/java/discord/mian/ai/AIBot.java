@@ -20,7 +20,8 @@ public class AIBot {
 
     private final Map<Guild, Roleplay> chats;
     private final Map<Guild, Server> servers;
-    private boolean pokemonCleanupDone = false;
+    private static final String CLEANUP_FLAG = "pokemon_cleanup_done";
+    private boolean pokemonCleanupDone = System.getProperty(CLEANUP_FLAG, "false").equals("true");
 
     public AIBot(JDA jda) throws Exception {
         if (bot != null)
@@ -79,6 +80,7 @@ public class AIBot {
                 }
             }
             pokemonCleanupDone = true;
+            System.setProperty(CLEANUP_FLAG, "true");
             Constants.LOGGER.info("Pokemon cleanup completed for all servers");
         }
         return servers.get(guild);
