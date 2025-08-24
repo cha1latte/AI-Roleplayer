@@ -20,6 +20,7 @@ public class AIBot {
 
     private final Map<Guild, Roleplay> chats;
     private final Map<Guild, Server> servers;
+    private final Map<Guild, Boolean> pokemonRestoredFlags = new HashMap<>();
     private static final String CLEANUP_FLAG = "pokemon_cleanup_done";
     private boolean pokemonCleanupDone = System.getProperty(CLEANUP_FLAG, "false").equals("true");
 
@@ -75,7 +76,8 @@ public class AIBot {
                     if (server != null) {
                         server.cleanupNonPokemonContent();
                         // Restore Pokemon defaults after cleanup
-                        server.restorePokemonDefaults();
+                        server.restorePokemonContent();
+                        pokemonRestoredFlags.put(g, true);
                     }
                 } catch (Exception e) {
                     Constants.LOGGER.error("Failed to cleanup non-Pokemon content for guild: " + g.getName(), e);
@@ -85,7 +87,19 @@ public class AIBot {
             System.setProperty(CLEANUP_FLAG, "true");
             Constants.LOGGER.info("Pokemon cleanup and restoration completed for all servers");
         }
-        return servers.get(guild);
+        
+        // Ensure Pokemon content is restored once per server
+        Server server = servers.get(guild);
+        if (server != null && !pokemonRestoredFlags.getOrDefault(guild, false)) {
+            try {
+                server.restorePokemonContent();
+                pokemonRestoredFlags.put(guild, true);
+            } catch (Exception e) {
+                Constants.LOGGER.error("Failed to restore Pokemon content for guild: " + guild.getName(), e);
+            }
+        }
+        
+        return server;
     }
 
     public void createChat(Guild guild) {
@@ -99,6 +113,11 @@ public class AIBot {
         try {
             Server server = new Server(guild);
             servers.put(guild, server);
+            
+            // Always ensure Pokemon content is restored after server creation
+            server.restorePokemonContent();
+            pokemonRestoredFlags.put(guild, true);
+            
             Constants.LOGGER.info("Successfully initialized server data for guild: " + guild.getName());
         } catch (Exception e) {
             Constants.LOGGER.error("Failed to create server data for guild: " + guild.getName(), e);
@@ -108,6 +127,7 @@ public class AIBot {
 
     public void removeServer(Guild guild) {
         Server server = servers.remove(guild);
+        pokemonRestoredFlags.remove(guild);
         if(server == null)
             return;
         ServerConfig config = server.getConfig();
