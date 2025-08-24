@@ -719,10 +719,8 @@ public class Interactions {
                     event.replyModal(InteractionCreator.createModal("Name Roleplay", modal -> {
                         modal.deferEdit().queue();
 
-                        String name = modal.getValue("name").getAsString();
-                        if (name == null || name.trim().isEmpty()) {
-                            name = "Roleplay";
-                        }
+                        String rawName = modal.getValue("name").getAsString();
+                        final String name = (rawName == null || rawName.trim().isEmpty()) ? "Roleplay" : rawName;
 
                         HashMap<PromptType, ArrayList<String>> datas = new HashMap<>();
                         datas.put(PromptType.INSTRUCTION, new ArrayList<>());
@@ -862,10 +860,8 @@ public class Interactions {
                         return;
                     }
                     event.replyModal(InteractionCreator.createModal("Name Roleplay", modal -> {
-                        String name = modal.getValue("name").getAsString();
-                        if (name == null || name.trim().isEmpty()) {
-                            name = "Roleplay";
-                        }
+                        String rawName = modal.getValue("name").getAsString();
+                        final String name = (rawName == null || rawName.trim().isEmpty()) ? "Roleplay" : rawName;
 
                         try {
                             roleplay.startRoleplay(
