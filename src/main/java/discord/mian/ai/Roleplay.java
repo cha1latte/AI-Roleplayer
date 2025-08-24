@@ -1304,17 +1304,16 @@ public class Roleplay {
             }
             
             // Restore the latest assistant message to prevent sending starting message
-            Constants.LOGGER.info("mostRecentBotMessage: " + (mostRecentBotMessage != null ? "exists" : "null"));
-            Constants.LOGGER.info("currentCharacter: " + (this.currentCharacter != null ? this.currentCharacter.getName() : "null"));
-            
             if (mostRecentBotMessage != null && this.currentCharacter != null) {
-                Constants.LOGGER.info("mostRecentBotMessage author: " + mostRecentBotMessage.getAuthor().getName() + " (ID: " + mostRecentBotMessage.getAuthor().getIdLong() + ")");
-                Constants.LOGGER.info("Bot self user: " + AIBot.bot.getJDA().getSelfUser().getName() + " (ID: " + AIBot.bot.getJDA().getSelfUser().getIdLong() + ")");
-                Constants.LOGGER.info("Is webhook message: " + mostRecentBotMessage.isWebhookMessage());
-                
-                if (mostRecentBotMessage.getAuthor().equals(AIBot.bot.getJDA().getSelfUser())) {
+                // For webhook messages, we can't check the author since webhooks have different authors
+                // Instead, we assume that if we successfully restored the webhook for this thread,
+                // then the webhook messages belong to us and we can safely restore latestAssistantMessage
+                if (mostRecentBotMessage.isWebhookMessage()) {
                     this.latestAssistantMessage = mostRecentBotMessage;
-                    Constants.LOGGER.info("Restored latestAssistantMessage from history to prevent starting message");
+                    Constants.LOGGER.info("Restored latestAssistantMessage from webhook message to prevent starting message");
+                } else if (mostRecentBotMessage.getAuthor().equals(AIBot.bot.getJDA().getSelfUser())) {
+                    this.latestAssistantMessage = mostRecentBotMessage;
+                    Constants.LOGGER.info("Restored latestAssistantMessage from bot message to prevent starting message");
                 } else {
                     Constants.LOGGER.info("Skipping latestAssistantMessage restoration - message was sent by different bot instance");
                 }
