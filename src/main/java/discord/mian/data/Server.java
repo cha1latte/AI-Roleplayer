@@ -285,28 +285,59 @@ public class Server {
         Constants.LOGGER.info("Restoring Pokemon defaults for server: " + guild.getName());
         
         try {
-            // Create Pokemon system prompt if missing
-            if (systemPromptDatas.isEmpty() || !systemPromptDatas.containsKey("Pokemon Adventure")) {
+            // Create Pokemon system prompt if missing - check database directly
+            long existingSystemPrompts = Util.DATABASE.getCollection("prompt")
+                    .countDocuments(Filters.and(
+                            Filters.eq("server", serverId),
+                            Filters.or(
+                                    Filters.eq("type", "instructions"),
+                                    Filters.eq("type", "system prompts")
+                            ),
+                            Filters.regex("name", "(?i)pokemon.*adventure")
+                    ));
+            
+            if (existingSystemPrompts == 0) {
                 File pokemonInstruction = new File("data/defaults/instructions/Pokemon Adventure.txt");
                 if (pokemonInstruction.exists()) {
                     String prompt = Files.readString(pokemonInstruction.toPath());
                     createSystemPrompt("Pokemon Adventure", prompt);
                     Constants.LOGGER.info("Restored Pokemon Adventure system prompt");
                 }
+            } else {
+                Constants.LOGGER.info("Pokemon system prompt already exists in database");
             }
             
-            // Create Pokemon persona if missing  
-            if (personaDatas.isEmpty() || !personaDatas.containsKey("Pokemon Trainer")) {
+            // Create Pokemon persona if missing - check database directly
+            long existingPersonas = Util.DATABASE.getCollection("prompt")
+                    .countDocuments(Filters.and(
+                            Filters.eq("server", serverId),
+                            Filters.or(
+                                    Filters.eq("type", "worlds"),
+                                    Filters.eq("type", "personas")
+                            ),
+                            Filters.regex("name", "(?i)pokemon.*trainer")
+                    ));
+            
+            if (existingPersonas == 0) {
                 File pokemonWorld = new File("data/defaults/worlds/Pokemon Trainer.txt");
                 if (pokemonWorld.exists()) {
                     String prompt = Files.readString(pokemonWorld.toPath());
                     createPersona("Pokemon Trainer", prompt);
                     Constants.LOGGER.info("Restored Pokemon Trainer persona");
                 }
+            } else {
+                Constants.LOGGER.info("Pokemon persona already exists in database");
             }
             
-            // Create Pokemon character if missing
-            if (characterDatas.isEmpty() || !characterDatas.containsKey("Pokemon Adventure")) {
+            // Create Pokemon character if missing - check database directly
+            long existingCharacters = Util.DATABASE.getCollection("prompt")
+                    .countDocuments(Filters.and(
+                            Filters.eq("server", serverId),
+                            Filters.eq("type", "characters"),
+                            Filters.regex("name", "(?i)pokemon.*adventure")
+                    ));
+            
+            if (existingCharacters == 0) {
                 File pokemonChar = new File("data/defaults/characters/pokemon-adventure.json");
                 if (pokemonChar.exists()) {
                     ObjectMapper mapper = new ObjectMapper();
@@ -321,6 +352,8 @@ public class Server {
                     );
                     Constants.LOGGER.info("Restored Pokemon Adventure character");
                 }
+            } else {
+                Constants.LOGGER.info("Pokemon character already exists in database");
             }
             
             // Clear caches to reload
