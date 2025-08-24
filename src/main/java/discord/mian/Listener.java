@@ -141,95 +141,58 @@ public class Listener {
 
     @SubscribeEvent
     public void onMessageReceived(MessageReceivedEvent event) throws ExecutionException, InterruptedException {
-        Constants.LOGGER.info("onMessageReceived called for user: " + event.getAuthor().getName() + " (ID: " + event.getAuthor().getIdLong() + ") Constants.PUBLIC: " + Constants.PUBLIC + " ALLOWED_USER_IDS: " + Constants.ALLOWED_USER_IDS);
         if (Constants.ALLOWED_USER_IDS.contains(event.getAuthor().getIdLong()) || Constants.PUBLIC) {
             Message msg = event.getMessage();
             
-            Constants.LOGGER.info("Message received from " + event.getAuthor().getName() + " in channel: " + event.getChannel().getName() + " (ID: " + event.getChannel().getId() + ") Channel type: " + event.getChannel().getType());
 
             if (!msg.isFromGuild()) {
-                Constants.LOGGER.info("Message not from guild, ignoring");
                 return;
             }
             if (msg.getAuthor() == AIBot.bot.getJDA().getSelfUser()) {
-                Constants.LOGGER.info("Message from bot itself, ignoring");
                 return;
             }
             if (msg.isWebhookMessage()) {
-                Constants.LOGGER.info("Message is webhook message, ignoring");
                 return;
             }
 
             Roleplay roleplay = AIBot.bot.getChat(event.getGuild());
-            Constants.LOGGER.info("Roleplay isRunningRoleplay: " + roleplay.isRunningRoleplay() + ", getChannel: " + (roleplay.getChannel() != null ? roleplay.getChannel().getId() : "null"));
                 
             if (roleplay.isMakingResponse()) {
-                Constants.LOGGER.info("Roleplay is making response, ignoring");
                 return;
             }
 
             // Check if this is a roleplay thread (either actively running or an old one after restart)
             boolean isRoleplayThread = false;
-            Constants.LOGGER.info("Checking if this is a roleplay thread...");
             
             if (roleplay.isRunningRoleplay() && roleplay.getChannel() != null && 
                 event.getChannel().getIdLong() == roleplay.getChannel().getIdLong()) {
-                Constants.LOGGER.info("Found active roleplay thread matching current channel");
                 isRoleplayThread = true;
             } else if (event.getChannel().getType() == net.dv8tion.jda.api.entities.channel.ChannelType.GUILD_PUBLIC_THREAD ||
                        event.getChannel().getType() == net.dv8tion.jda.api.entities.channel.ChannelType.GUILD_PRIVATE_THREAD) {
-                Constants.LOGGER.info("Message is in a thread channel, attempting to restore roleplay");
                 // Check if this is a potential roleplay thread from before bot restart
                 ThreadChannel threadChannel = (ThreadChannel) event.getChannel();
                 // If it's a thread and the bot isn't tracking it as active, try to restore it
                 if (!roleplay.isRunningRoleplay()) {
-                    Constants.LOGGER.info("Restoring roleplay from thread: " + threadChannel.getName());
-                    try {
-                        roleplay.restoreRoleplayFromThread(threadChannel);
-                        Constants.LOGGER.info("Thread restoration completed successfully");
-                    } catch (Exception e) {
-                        Constants.LOGGER.error("Exception during thread restoration", e);
-                        throw e;
-                    }
-                } else {
-                    Constants.LOGGER.info("Roleplay already running, treating thread as roleplay thread");
+                    roleplay.restoreRoleplayFromThread(threadChannel);
                 }
                 isRoleplayThread = true;
-            } else {
-                Constants.LOGGER.info("Channel type is: " + event.getChannel().getType() + ", not a thread");
             }
 
-            Constants.LOGGER.info("isRoleplayThread: " + isRoleplayThread);
-            
             if (isRoleplayThread) {
-                Constants.LOGGER.info("Processing message in roleplay thread");
-                try {
-                    Random random = new Random();
+                Random random = new Random();
 
-                    Character fromContent = roleplay.findRespondingCharacterFromContent(msg.getContentRaw());
-                    Constants.LOGGER.info("findRespondingCharacterFromContent result: " + (fromContent != null ? fromContent.getName() : "null"));
+                Character fromContent = roleplay.findRespondingCharacterFromContent(msg.getContentRaw());
                 
                 if (fromContent != null && !fromContent.getName().equals(event.getAuthor().getName())) {
-                    Constants.LOGGER.info("Found character from content: " + fromContent.getName() + ", prompting to roleplay");
                     roleplay.promptCharacterToRoleplay(fromContent, msg, true);
                 } else {
-                    Constants.LOGGER.info("No character from content, checking findRespondingCharacterFromMessage");
-                    Character data = null;
-                    try {
-                        data = roleplay.findRespondingCharacterFromMessage(msg);
-                        Constants.LOGGER.info("findRespondingCharacterFromMessage result: " + (data != null ? data.getName() : "null"));
-                    } catch (Exception e) {
-                        Constants.LOGGER.error("Exception in findRespondingCharacterFromMessage", e);
-                        throw e;
-                    }
+                    Character data = roleplay.findRespondingCharacterFromMessage(msg);
                     
                     if (data != null && !data.getName().equals(event.getAuthor().getName())) {
-                        Constants.LOGGER.info("Found character from message: " + data.getName() + ", prompting to roleplay");
                         roleplay.promptCharacterToRoleplay(data, msg, true);
                     } else {
                         boolean onlyMention = AIBot.bot.getServerData(event.getGuild()).getConfig()
                                 .get("only_chat_on_mention", Boolean.class).getValue();
-                        Constants.LOGGER.info("No specific character found, only_chat_on_mention: " + onlyMention);
                         
                         if (!onlyMention) {
                             // Check if there's a current character from the original roleplay
