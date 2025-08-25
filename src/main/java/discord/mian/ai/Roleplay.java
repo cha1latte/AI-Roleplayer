@@ -188,6 +188,11 @@ public class Roleplay {
         // Clean up any leftover whitespace and stray punctuation at the beginning
         filtered = filtered.replaceAll("^[\\s\\.]+", "").trim();
         
+        // Ensure the response doesn't exceed Discord's 2000 character limit
+        if (filtered.length() > 2000) {
+            filtered = filtered.substring(0, 1997) + "...";
+        }
+        
         return filtered;
     }
 
