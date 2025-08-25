@@ -193,10 +193,10 @@ public class Roleplay {
         filtered = filtered.replaceAll("(?s)\\*thinking\\*.*?\\*/thinking\\*", "");
         
         // Remove patterns that look like internal reasoning at the start
-        filtered = filtered.replaceAll("(?s)^.*?(The user wants me to|I should|Plan:).*?(?=You|\\w+:)", "");
+        filtered = filtered.replaceAll("(?s)^.*?(The user wants me to|I should|Plan:|Let me|I need to).*?(?=You|\\w+:|[A-Z][a-z]+\\s)", "");
         
         // Clean up any leftover whitespace and stray punctuation at the beginning
-        filtered = filtered.replaceAll("^[\\s\\.]+", "").trim();
+        filtered = filtered.replaceAll("^[\\s\\.\\!\\?\\,\\;\\:]+", "").trim();
         
         // Ensure the response doesn't exceed Discord's 2000 character limit
         if (filtered.length() > 2000) {
