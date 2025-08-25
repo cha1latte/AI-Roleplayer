@@ -183,7 +183,12 @@ public class Roleplay {
         if (content == null) return null;
         
         // Remove thinking tags and their content using regex
-        return content.replaceAll("(?s)<thinking>.*?</thinking>", "").trim();
+        String filtered = content.replaceAll("(?s)<thinking>.*?</thinking>", "");
+        
+        // Clean up any leftover whitespace and stray punctuation at the beginning
+        filtered = filtered.replaceAll("^[\\s\\.]+", "").trim();
+        
+        return filtered;
     }
 
     public void creatingResponseFromDiscordMessage() {
