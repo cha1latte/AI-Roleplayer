@@ -182,9 +182,6 @@ public class Roleplay {
     private String removeThinkingTags(String content) {
         if (content == null) return null;
         
-        // Log the raw content for debugging
-        Constants.LOGGER.info("Raw response content: " + content.substring(0, Math.min(200, content.length())));
-        
         // Remove thinking tags with various possible formats
         String filtered = content;
         
@@ -201,15 +198,27 @@ public class Roleplay {
         // Clean up any leftover whitespace and stray punctuation at the beginning
         filtered = filtered.replaceAll("^[\\s\\.]+", "").trim();
         
-        // Log the filtered content for debugging
-        Constants.LOGGER.info("Filtered response content: " + filtered.substring(0, Math.min(200, filtered.length())));
-        
         // Ensure the response doesn't exceed Discord's 2000 character limit
         if (filtered.length() > 2000) {
             filtered = filtered.substring(0, 1997) + "...";
         }
         
         return filtered;
+    }
+    
+    private boolean isThinkingContent(String content) {
+        if (content == null || content.trim().isEmpty()) return false;
+        
+        // Check if the content appears to be thinking/reasoning content
+        String lower = content.toLowerCase().trim();
+        return lower.startsWith("the user wants me to") ||
+               lower.startsWith("i should") ||
+               lower.contains("plan:") ||
+               lower.startsWith("let me") ||
+               lower.startsWith("i need to") ||
+               content.contains("<thinking>") ||
+               content.contains("[thinking]") ||
+               content.contains("*thinking*");
     }
 
     public void creatingResponseFromDiscordMessage() {
@@ -506,6 +515,11 @@ public class Roleplay {
 
         RestAction<ResponseInfo> responseInfo = generateResponse(character, response -> {
             if (!queued.get() && System.currentTimeMillis() - timeResponseMade.get() >= timeBetween && !response.isBlank()) {
+                // Skip updating the message if the response looks like thinking content
+                if (isThinkingContent(response)) {
+                    return;
+                }
+                
                 queued.set(true);
                 Consumer<Object> onComplete = ignored -> {
                     queued.set(false);
@@ -522,7 +536,7 @@ public class Roleplay {
         return responseInfo.map(info -> {
             String newContent = info.editResponse(reformat);
 
-            if (newContent.isEmpty())
+            if (newContent.isEmpty() || isThinkingContent(newContent))
                 throw new RuntimeException("The provider returned no content, try again? :(");
             return info;
         });
