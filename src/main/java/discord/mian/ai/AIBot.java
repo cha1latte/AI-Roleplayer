@@ -100,7 +100,7 @@ public class AIBot {
                                         Filters.eq("type", "instructions"),
                                         Filters.eq("type", "system prompts")
                                 ),
-                                Filters.regex("name", "(?i)pokemon.*adventure")
+                                Filters.regex("name", "(?i)pokemon.*adventure.*gm")
                         ));
                 
                 long pokemonCharacters = Util.DATABASE.getCollection("prompt")

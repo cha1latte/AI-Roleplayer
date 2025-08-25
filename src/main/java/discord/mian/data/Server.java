@@ -317,7 +317,7 @@ public class Server {
                                     Filters.eq("type", "instructions"),
                                     Filters.eq("type", "system prompts")
                             ),
-                            Filters.regex("name", "(?i)pokemon.*adventure")
+                            Filters.regex("name", "(?i)pokemon.*adventure.*gm")
                     ));
             
             if (existingSystemPrompts == 0) {
@@ -360,7 +360,7 @@ public class Server {
                     .countDocuments(Filters.and(
                             Filters.eq("server", serverId),
                             Filters.eq("type", "characters"),
-                            Filters.regex("name", "(?i)pokemon.*adventure")
+                            Filters.regex("name", "(?i)pokemon.*adventure.*gm")
                     ));
             
             if (existingCharacters == 0) {
@@ -505,6 +505,29 @@ public class Server {
             Constants.LOGGER.info("Found Pokemon content - Instructions: " + pokemonInstructions + 
                                 ", Worlds: " + pokemonWorlds + ", Characters: " + pokemonCharacters);
             
+            // Fix any incorrectly typed Pokemon documents first
+            // Check if "Pokemon Adventure" exists with wrong type and fix it
+            long incorrectCharacters = Util.DATABASE.getCollection("prompt")
+                    .countDocuments(Filters.and(
+                            Filters.eq("server", serverId),
+                            Filters.eq("name", "Pokemon Adventure"),
+                            Filters.eq("type", "instructions")
+                    ));
+            
+            if (incorrectCharacters > 0) {
+                Constants.LOGGER.info("Found Pokemon Adventure character stored with wrong type 'instructions', fixing...");
+                Util.DATABASE.getCollection("prompt")
+                        .updateMany(
+                                Filters.and(
+                                        Filters.eq("server", serverId),
+                                        Filters.eq("name", "Pokemon Adventure"),
+                                        Filters.eq("type", "instructions")
+                                ),
+                                Updates.set("type", "characters")
+                        );
+                Constants.LOGGER.info("Fixed Pokemon Adventure character type from 'instructions' to 'characters'");
+            }
+            
             // If Pokemon content is missing, recreate it from defaults
             boolean restored = false;
             
@@ -516,8 +539,8 @@ public class Server {
                     if (instructionFile.exists()) {
                         String prompt = Files.readString(instructionFile.toPath());
                         Constants.LOGGER.info("Creating Pokemon system prompt with content length: " + prompt.length());
-                        createSystemPrompt("Pokemon Adventure", prompt);
-                        Constants.LOGGER.info("Successfully restored Pokemon Adventure system prompt from defaults");
+                        createSystemPrompt("Pokemon Adventure GM", prompt);
+                        Constants.LOGGER.info("Successfully restored Pokemon Adventure GM system prompt from defaults");
                         restored = true;
                         
                         // Verify it was created
@@ -528,7 +551,7 @@ public class Server {
                                                 Filters.eq("type", "instructions"),
                                                 Filters.eq("type", "system prompts")
                                         ),
-                                        Filters.regex("name", "(?i)pokemon.*adventure")
+                                        Filters.regex("name", "(?i)pokemon.*adventure.*gm")
                                 ));
                         Constants.LOGGER.info("Verification: Pokemon system prompts now in database: " + verifyCount);
                         
@@ -537,8 +560,8 @@ public class Server {
                         
                         // Try to create from hardcoded backup content
                         String backupPrompt = "You are the GM for a Pokémon text adventure RPG. The user plays as their trainer while you control the world, NPCs, wild Pokémon, and all game mechanics.";
-                        createSystemPrompt("Pokemon Adventure", backupPrompt);
-                        Constants.LOGGER.info("Created Pokemon Adventure system prompt from backup content");
+                        createSystemPrompt("Pokemon Adventure GM", backupPrompt);
+                        Constants.LOGGER.info("Created Pokemon Adventure GM system prompt from backup content");
                         restored = true;
                     }
                 } catch (Exception e) {
@@ -547,8 +570,8 @@ public class Server {
                     // Last resort - create with minimal content
                     try {
                         String minimalPrompt = "Pokemon adventure system prompt";
-                        createSystemPrompt("Pokemon Adventure", minimalPrompt);
-                        Constants.LOGGER.info("Created minimal Pokemon Adventure system prompt as fallback");
+                        createSystemPrompt("Pokemon Adventure GM", minimalPrompt);
+                        Constants.LOGGER.info("Created minimal Pokemon Adventure GM system prompt as fallback");
                         restored = true;
                     } catch (Exception fallbackException) {
                         Constants.LOGGER.error("Even fallback creation failed", fallbackException);
