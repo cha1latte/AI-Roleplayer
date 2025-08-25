@@ -612,9 +612,15 @@ public class Server {
                         );
                         Character character = characterDatas.get(characterName);
                         if (character != null) {
-                            character.updateDocument(document -> 
-                                document.setAvatar(characterNode.get("avatar").asText())
-                            );
+                            character.updateDocument(document -> {
+                                document.setAvatar(characterNode.get("avatar").asText());
+                                // Set starting message if provided
+                                JsonNode startingMessageNode = characterNode.get("startingMessage");
+                                if (startingMessageNode != null && !startingMessageNode.isNull()) {
+                                    document.setStartingMessage(startingMessageNode.asText());
+                                    Constants.LOGGER.info("Set starting message for Pokemon Adventure character");
+                                }
+                            });
                         }
                         Constants.LOGGER.info("Successfully restored Pokemon Adventure character from defaults");
                         
@@ -634,7 +640,39 @@ public class Server {
                     Constants.LOGGER.error("Failed to restore Pokemon Adventure character", e);
                 }
             } else {
-                Constants.LOGGER.info("Pokemon character already exists, skipping creation");
+                Constants.LOGGER.info("Pokemon character already exists, checking if starting message needs to be added...");
+                // Check if existing character has a starting message
+                try {
+                    File characterFile = new File(Util.getDefaultsFor(PromptType.CHARACTER), "pokemon-adventure.json");
+                    if (characterFile.exists()) {
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode characterNode = mapper.readTree(characterFile);
+                        JsonNode startingMessageNode = characterNode.get("startingMessage");
+                        
+                        if (startingMessageNode != null && !startingMessageNode.isNull()) {
+                            // Update existing character with starting message
+                            Character existingCharacter = characterDatas.get("Pokemon Adventure");
+                            if (existingCharacter == null) {
+                                // Load from database if not in cache
+                                getCharacterDatas();
+                                existingCharacter = characterDatas.get("Pokemon Adventure");
+                            }
+                            
+                            if (existingCharacter != null) {
+                                String currentStartingMessage = existingCharacter.getDocument().getStartingMessage();
+                                if (currentStartingMessage == null || currentStartingMessage.trim().isEmpty()) {
+                                    existingCharacter.updateDocument(document -> {
+                                        document.setStartingMessage(startingMessageNode.asText());
+                                    });
+                                    Constants.LOGGER.info("Updated existing Pokemon Adventure character with starting message");
+                                    restored = true;
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    Constants.LOGGER.error("Error updating existing Pokemon character with starting message", e);
+                }
             }
             
             // Clear cached data to force reload
