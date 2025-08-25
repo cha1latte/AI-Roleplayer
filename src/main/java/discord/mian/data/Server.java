@@ -660,11 +660,15 @@ public class Server {
                             
                             if (existingCharacter != null) {
                                 String currentStartingMessage = existingCharacter.getDocument().getStartingMessage();
-                                if (currentStartingMessage == null || currentStartingMessage.trim().isEmpty()) {
+                                String newStartingMessage = startingMessageNode.asText();
+                                // Always update if message is empty or different
+                                if (currentStartingMessage == null || 
+                                    currentStartingMessage.trim().isEmpty() || 
+                                    !currentStartingMessage.equals(newStartingMessage)) {
                                     existingCharacter.updateDocument(document -> {
-                                        document.setStartingMessage(startingMessageNode.asText());
+                                        document.setStartingMessage(newStartingMessage);
                                     });
-                                    Constants.LOGGER.info("Updated existing Pokemon Adventure character with starting message");
+                                    Constants.LOGGER.info("Updated existing Pokemon Adventure character with new starting message");
                                     restored = true;
                                 }
                             }
