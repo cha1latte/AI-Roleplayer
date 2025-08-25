@@ -367,9 +367,11 @@ public class Roleplay {
                         fullResponse += content;
                         String filteredResponse = removeThinkingTags(fullResponse);
                         
+                        // Check filtered response length, but allow full response to continue if it's just thinking content
                         if (filteredResponse.length() < 2000) {
                             consumer.accept(filteredResponse);
                         } else {
+                            // Only stop if the actual visible content exceeds limit
                             return new ResponseInfo(
                                     model.getDisplay(),
                                     null,
@@ -1285,19 +1287,21 @@ public class Roleplay {
             for (Message message : messages) {
                 if (message.isWebhookMessage()) {
                     String authorName = message.getAuthor().getName();
-                    Constants.LOGGER.info("Found webhook message from: " + authorName);
                     
                     // Check if this author name matches any of our characters
                     Character matchingCharacter = characters.get(authorName);
                     if (matchingCharacter != null) {
-                        this.currentCharacter = matchingCharacter;
+                        // Only log and set if we haven't found a character yet
+                        if (this.currentCharacter == null) {
+                            Constants.LOGGER.info("Found webhook message from: " + authorName);
+                            this.currentCharacter = matchingCharacter;
+                            Constants.LOGGER.info("Identified active character from history (sync): " + matchingCharacter.getName());
+                        }
                         
                         // Keep track of the most recent bot message for this character
                         if (mostRecentBotMessage == null) {
                             mostRecentBotMessage = message;
                         }
-                        
-                        Constants.LOGGER.info("Identified active character from history (sync): " + matchingCharacter.getName());
                     }
                 }
             }
