@@ -179,6 +179,13 @@ public class Roleplay {
         return msgs;
     }
 
+    private String removeThinkingTags(String content) {
+        if (content == null) return null;
+        
+        // Remove thinking tags and their content using regex
+        return content.replaceAll("(?s)<thinking>.*?</thinking>", "").trim();
+    }
+
     public void creatingResponseFromDiscordMessage() {
         if (makingResponse)
             throw new RuntimeException("Already generating a response!");
@@ -352,14 +359,16 @@ public class Roleplay {
                         String content = responseJson.get("choices").get(0).get("delta").get("content").toString();
                         content = content.substring(1, content.length() - 1);
 
-                        if ((fullResponse + content).length() < 2000) {
-                            fullResponse += content;
-                            consumer.accept(fullResponse);
+                        fullResponse += content;
+                        String filteredResponse = removeThinkingTags(fullResponse);
+                        
+                        if (filteredResponse.length() < 2000) {
+                            consumer.accept(filteredResponse);
                         } else {
                             return new ResponseInfo(
                                     model.getDisplay(),
                                     null,
-                                    fullResponse,
+                                    filteredResponse,
                                     null,
                                     null,
                                     fullPrompt
@@ -377,7 +386,7 @@ public class Roleplay {
                     return new ResponseInfo(
                             openRouterResponse.get("model").asText(),
                             openRouterResponse.get("provider").asText(),
-                            fullResponse,
+                            removeThinkingTags(fullResponse),
                             openRouterResponse.get("usage").get("prompt_tokens").asInt(),
                             openRouterResponse.get("usage").get("completion_tokens").asInt(),
                             fullPrompt
