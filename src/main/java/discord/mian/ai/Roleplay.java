@@ -395,8 +395,7 @@ public class Roleplay {
                             continue;
 
                         JsonNode responseJson = mapper.readTree(line.substring(5).trim());
-                        String content = responseJson.get("choices").get(0).get("delta").get("content").toString();
-                        content = content.substring(1, content.length() - 1);
+                        String content = responseJson.get("choices").get(0).get("delta").get("content").asText();
 
                         fullResponse += content;
                         String filteredResponse = removeThinkingTags(fullResponse);
