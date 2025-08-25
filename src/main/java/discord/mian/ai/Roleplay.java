@@ -195,6 +195,9 @@ public class Roleplay {
         // Remove patterns that look like internal reasoning at the start
         filtered = filtered.replaceAll("(?s)^.*?(The user wants me to|I should|Plan:|Let me|I need to).*?(?=You|\\w+:|[A-Z][a-z]+\\s)", "");
         
+        // Remove system prompt content that might leak through
+        filtered = filtered.replaceAll("(?i).*?(follow your persona|system prompt|instructions defined|you are participating in a roleplay|this is a chatbot roleplay|you are playing|do not include the character name|keep responses within).*?(?=You|[A-Z][a-z]+)", "");
+        
         // Clean up any leftover whitespace and stray punctuation at the beginning
         filtered = filtered.replaceAll("^[\\s\\.\\!\\?\\,\\;\\:]+", "").trim();
         
@@ -218,7 +221,16 @@ public class Roleplay {
                lower.startsWith("i need to") ||
                content.contains("<thinking>") ||
                content.contains("[thinking]") ||
-               content.contains("*thinking*");
+               content.contains("*thinking*") ||
+               // Check for system prompt content that shouldn't be visible
+               lower.contains("follow your persona") ||
+               lower.contains("system prompt") ||
+               lower.contains("instructions defined") ||
+               lower.contains("you are participating in a roleplay") ||
+               lower.contains("this is a chatbot roleplay") ||
+               lower.startsWith("you are playing") ||
+               lower.contains("do not include the character name") ||
+               lower.contains("keep responses within");
     }
 
     public void creatingResponseFromDiscordMessage() {
