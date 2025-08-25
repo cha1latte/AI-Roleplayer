@@ -198,6 +198,10 @@ public class Roleplay {
         // Clean up any leftover whitespace and stray punctuation at the beginning
         filtered = filtered.replaceAll("^[\\s\\.\\!\\?\\,\\;\\:]+", "").trim();
         
+        // Fix escaped quotes and other characters
+        filtered = filtered.replace("\\\"", "\"")
+                          .replace("\\'", "'");
+        
         // Ensure the response doesn't exceed Discord's 2000 character limit
         if (filtered.length() > 2000) {
             filtered = filtered.substring(0, 1997) + "...";
@@ -511,6 +515,8 @@ public class Roleplay {
                 string.replace(botUser, "")
 			.replace("\\n", "\n")
                         .replace("\\r", "\r")
+                        .replace("\\\"", "\"")
+                        .replace("\\'", "'")
                         .replace("\\\\", "\\");
 
         RestAction<ResponseInfo> responseInfo = generateResponse(character, response -> {
