@@ -182,11 +182,27 @@ public class Roleplay {
     private String removeThinkingTags(String content) {
         if (content == null) return null;
         
-        // Remove thinking tags and their content using regex
-        String filtered = content.replaceAll("(?s)<thinking>.*?</thinking>", "");
+        // Log the raw content for debugging
+        Constants.LOGGER.info("Raw response content: " + content.substring(0, Math.min(200, content.length())));
+        
+        // Remove thinking tags with various possible formats
+        String filtered = content;
+        
+        // Standard thinking tags
+        filtered = filtered.replaceAll("(?s)<thinking>.*?</thinking>", "");
+        
+        // Alternative thinking formats that might be used
+        filtered = filtered.replaceAll("(?s)\\[thinking\\].*?\\[/thinking\\]", "");
+        filtered = filtered.replaceAll("(?s)\\*thinking\\*.*?\\*/thinking\\*", "");
+        
+        // Remove patterns that look like internal reasoning at the start
+        filtered = filtered.replaceAll("(?s)^.*?(The user wants me to|I should|Plan:).*?(?=You|\\w+:)", "");
         
         // Clean up any leftover whitespace and stray punctuation at the beginning
         filtered = filtered.replaceAll("^[\\s\\.]+", "").trim();
+        
+        // Log the filtered content for debugging
+        Constants.LOGGER.info("Filtered response content: " + filtered.substring(0, Math.min(200, filtered.length())));
         
         // Ensure the response doesn't exceed Discord's 2000 character limit
         if (filtered.length() > 2000) {
