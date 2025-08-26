@@ -637,10 +637,26 @@ public class Roleplay {
             (latestAssistantMessage != null ? "exists" : "null") + 
             ", startingMessage: " + (startingMessage != null ? "exists" : "null") + 
             ", character: " + currentCharacter.getName());
-        // Skip starting message if this is a restored thread
+        // Skip starting message if this is a restored thread or if there's already conversation history
         boolean isRestoredThread = isRestoredRoleplay;
+        boolean hasExistingHistory = false;
         
-        if (latestAssistantMessage == null && startingMessage != null && !startingMessage.trim().isEmpty() && !isRestoredThread) {
+        // For restored threads, check if there's existing conversation history
+        if (isRestoredThread && historyMarker != null) {
+            try {
+                List<Message> recentMessages = historyMarker.getIterableHistory().limit(10).complete();
+                hasExistingHistory = recentMessages.stream().anyMatch(msg -> 
+                    (msg.isWebhookMessage() && characters.containsKey(msg.getAuthor().getName())) ||
+                    (!msg.getAuthor().equals(AIBot.bot.getJDA().getSelfUser()) && !msg.getContentRaw().contains("Currently creating a response"))
+                );
+                Constants.LOGGER.info("Restored thread has existing history: " + hasExistingHistory);
+            } catch (Exception e) {
+                Constants.LOGGER.warn("Failed to check thread history, assuming has history", e);
+                hasExistingHistory = true; // Safe default - don't send starting message if we can't check
+            }
+        }
+        
+        if (latestAssistantMessage == null && startingMessage != null && !startingMessage.trim().isEmpty() && !isRestoredThread && !hasExistingHistory) {
             Constants.LOGGER.info("Sending starting message for character: " + currentCharacter.getName());
             // Send the predefined starting message instead of generating
             String avatarLink = currentCharacter.getDocument().getAvatar();
